@@ -8,14 +8,46 @@ using TMPro;
 public class BattleManager : MonoBehaviour
 {
     public ChoiceManager buttonchoice;
+    public ButtonValueSelector buttonValueSelector;
+
+    [SerializeField] RectTransform uiCanvasRoot;
+    [SerializeField] GameObject bulletPrefab;
 
     public bool battleEnd = false;
     public bool running;
+    public int MleeRange = 20;
+
+    public static int TargetEnemy_Int;
+    public bool IsFirstRun = true;
+
+    public int CurrentMovingEnemy_int;
+
+    public List<RectTransform> Markers;
+    public List<RectTransform> EndPoints;
+    public List<(RectTransform marker, RectTransform endpoint, ICharacter enemies)> Enemy_WithMarkers;
 
     /* 이동, 사격 시퀀스에서 UI에 나와 적 표시 */
-    public RectTransform minPoint;   // 가상 직선 경로의 시작점 (min)
-    public RectTransform maxPoint;   // 끝점   (max)
-    public RectTransform marker;     // enemies[0] 아이콘
+    public RectTransform minPoint;   // 가상 직선 경로의 시작점 (min)  
+
+    public RectTransform marker0;     // enemies[0] 아이콘
+    public RectTransform EndPoint0;   // 끝점   (max)
+    public RectTransform marker1;
+    public RectTransform EndPoint1;
+    public RectTransform marker2;
+    public RectTransform EndPoint2;
+    public RectTransform marker3;
+    public RectTransform EndPoint3;
+    public RectTransform marker4;
+    public RectTransform EndPoint4;
+    public RectTransform marker5;
+    public RectTransform EndPoint5;
+    public RectTransform marker6;
+    public RectTransform EndPoint6;
+    public RectTransform marker7;
+    public RectTransform EndPoint7;
+
+
+
     public float gameMin = 0f;       // enemires[].distance의 선형 보간을 위한 수, 최소 distance
     public float gameMax = 200f;     // enemires[].distance의 선형 보간을 위한 수, 최대 distance
 
@@ -27,6 +59,9 @@ public class BattleManager : MonoBehaviour
     public TextMeshProUGUI MleeButtonText_3;
     public Button MleeButton_4;
     public TextMeshProUGUI MleeButtonText_4;
+
+
+
 
     //실행전 캐릭터 객체 초기화
     ICharacter player;
@@ -45,9 +80,46 @@ public class BattleManager : MonoBehaviour
         guns = new List<IGun> { new NormalPistol() };
         player.EquipMethod(guns[0]);
         player.SkillCheckMethod();
-        enemies = new List<ICharacter> { new Monster1() };
+        enemies = new List<ICharacter> { new Monster1() , new Monster1()};
         enemies[0].EquipMethod(guns[0]);
         enemies[0].SkillCheckMethod();
+        enemies[1].EquipMethod(guns[0]);
+        enemies[1].SkillCheckMethod();
+
+        Markers = new List<RectTransform> { marker0, marker1, marker2, marker3, marker4, marker5, marker6, marker7 };
+        EndPoints = new List<RectTransform> { EndPoint0, EndPoint1, EndPoint2, EndPoint3, EndPoint4, EndPoint5, EndPoint6, EndPoint7 };
+
+        Enemy_WithMarkers = new();
+
+        while (enemies.Count < 8)
+        {
+            enemies.Add(null);
+        }
+        for (int i = 0; i < 8; i++)
+        {
+            if (enemies[i] != null)
+            {
+                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], enemies[i]));
+            }
+            else
+            {
+                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], null));
+            }
+        }
+
+        for (int i = 0; i < 8; i++)
+        {
+            if (Enemy_WithMarkers[i].enemies != null)
+            {
+                UpdateMarkerForEnemy0(Enemy_WithMarkers[i].enemies.Distance, Enemy_WithMarkers[i].marker, Enemy_WithMarkers[i].endpoint);
+            }
+            else
+            {
+                continue;
+            }
+
+        }
+
 
 
         //테스트용
@@ -74,20 +146,48 @@ public class BattleManager : MonoBehaviour
         while (!battleEnd)
         {
             // 1) 플레이어 턴 (입력 대기)
-            yield return StartCoroutine(MovingPhase());
+
+            for (int i = 0; i < 8; i++)
+            {
+                CurrentMovingEnemy_int = i;
+
+                if (Enemy_WithMarkers[i].enemies != null)
+                {
+
+                    yield return StartCoroutine(MovingPhase(player, Enemy_WithMarkers[i].enemies));
+
+                    if (Enemy_WithMarkers[i].enemies.Distance < MleeRange)
+                    {
+                        yield return StartCoroutine(MleePhase(player, Enemy_WithMarkers[i].enemies));
+                    }
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
+            IsFirstRun = true;
+
+            yield return StartCoroutine(ShotTargetEnemySelect());
+
+            yield return StartCoroutine(ShotingPhase(player, Enemy_WithMarkers[TargetEnemy_Int].enemies));
+
+            for (int i = 0; i < 8; i++)
+            {
+                if (Enemy_WithMarkers[i].enemies != null)
+                {
+                    yield return StartCoroutine(EnemyShotYourFaceFuck(Enemy_WithMarkers[i].enemies, player,i));
+                }
+                else
+                {
+                    continue;
+                }
+            }
 
             // 조기 종료 체크
-            if (battleEnd) break;
+            //if (battleEnd) break;
 
-            if (enemies[0].Distance < 5)
-            {
-                yield return StartCoroutine(MleePhase(player, enemies[0]));
-            }
-            else
-            {
-                // 2) 적 턴
-                yield return StartCoroutine(ShotingPhase());
-            }
 
             // 3) 승패 판정
             if (/* 모두 처치 */ false) { Debug.Log("Victory"); battleEnd = true; }
@@ -100,20 +200,38 @@ public class BattleManager : MonoBehaviour
         running = false;
     }
 
-    public IEnumerator MovingPhase()
+    public IEnumerator MovingPhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy)
     {
-        UpdateMarkerForEnemy0(enemies[0].Distance); //임시
+        for (int i = 0; i < 8; i++)
+        {
+            if (Enemy_WithMarkers[i].enemies != null)
+            {
+                UpdateMarkerForEnemy0(Enemy_WithMarkers[i].enemies.Distance, Enemy_WithMarkers[i].marker, Enemy_WithMarkers[i].endpoint);
+            }
+            else
+            {
+                continue;
+            }
 
-        // 대기 들어가기 전 반드시 초기화
-        buttonchoice.choicetrue = false;
-        buttonchoice.choicewhat = -1;
+        }
 
-        // 선택지 표시(UI는 네가 연결)
-        TalkManager.Currenttalk = 2;
+        if (IsFirstRun == true)
+        {
+            // 대기 들어가기 전 반드시 초기화
+            buttonchoice.choicetrue = false;
+            buttonchoice.choicewhat = -1;
 
-        buttonchoice.SpawnButtons("거리 좁히기", "거리 유지", "거리 벌리기", " 테스트1", "테스트2", "테스트3", "테스트4");
+            // 선택지 표시(UI는 네가 연결)
+            TalkManager.Currenttalk = 2;
 
-        yield return new WaitUntil(() => buttonchoice.choicetrue);
+            buttonchoice.SpawnButtons("거리 좁히기", "거리 유지", "거리 벌리기", " 테스트1", "테스트2", "테스트3", "테스트4");
+
+            yield return new WaitUntil(() => buttonchoice.choicetrue);
+
+            IsFirstRun = false;
+        }
+
+
 
         // 분기 처리
         switch (buttonchoice.choicewhat) //거리조절 시퀀스
@@ -122,7 +240,7 @@ public class BattleManager : MonoBehaviour
 
                 Debug.Log("거리 좁히기!");
 
-                yield return StartCoroutine(DoRun(player, enemies[0], 0));
+                yield return StartCoroutine(DoRun(ShouldBePlayer, ShouldBeEnemy, 0));
 
                 break;
 
@@ -130,7 +248,7 @@ public class BattleManager : MonoBehaviour
 
                 Debug.Log("거리 유지!");
 
-                yield return StartCoroutine(DoRun(player, enemies[0], 1));
+                yield return StartCoroutine(DoRun(ShouldBePlayer, ShouldBeEnemy, 1));
 
                 break;
 
@@ -138,17 +256,15 @@ public class BattleManager : MonoBehaviour
 
                 Debug.Log("거리 벌리기!");
 
-                yield return StartCoroutine(DoRun(player, enemies[0], 2));
+                yield return StartCoroutine(DoRun(ShouldBePlayer, ShouldBeEnemy, 2));
 
                 break;
         }
 
         // 다음 턴 대비 초기화(선택)
-        buttonchoice.choicetrue = false;
-        buttonchoice.choicewhat = -1;
     }
 
-    public IEnumerator ShotingPhase()
+    public IEnumerator ShotingPhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy)
     {
         // 대기 들어가기 전 반드시 초기화
         buttonchoice.choicetrue = false;
@@ -165,7 +281,7 @@ public class BattleManager : MonoBehaviour
         {
             case 0:
 
-                yield return StartCoroutine(DoFuckingShotTheFAce(player, enemies[0], 0));
+                yield return StartCoroutine(DoFuckingShotTheFAce(ShouldBePlayer, ShouldBeEnemy, 0));
 
                 break;
 
@@ -355,7 +471,7 @@ public class BattleManager : MonoBehaviour
 
         ShouldBeEnemy.Distance = CalcDistance(ShouldBePlayer, ShouldBeEnemy, moveCaseNine);
 
-        UpdateMarkerForEnemy0(ShouldBeEnemy.Distance);
+        UpdateMarkerForEnemy0(ShouldBeEnemy.Distance, Enemy_WithMarkers[CurrentMovingEnemy_int].marker, Enemy_WithMarkers[CurrentMovingEnemy_int].endpoint);
 
         TalkManager.Instance.ShowTemp($"{Mathf.Abs(BeforeDistance - ShouldBeEnemy.Distance)}만큼 이동했다. {ShouldBePlayer.Name}과 {ShouldBeEnemy.Name}의 거리는 {ShouldBeEnemy.Distance}(이)가 되었다!");
         yield return StartCoroutine(WaitForSpace());
@@ -446,6 +562,19 @@ public class BattleManager : MonoBehaviour
         return 40 + attacker.EquipedGun.AimCorrection + attacker.Perception - (defender.Speed + defender.Perception / 2);
     }
 
+    public IEnumerator ShotTargetEnemySelect()
+    {
+        TargetEnemy_Int = -1;
+        buttonValueSelector.choiceButtonTrue = false;
+        buttonValueSelector.SetBindingsInteractable(true);
+
+        TalkManager.Currenttalk = 3;
+
+        yield return new WaitUntil(() => buttonValueSelector.choiceButtonTrue);
+
+        Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.blue;
+    }
+
     public IEnumerator DoFuckingShotTheFAce(ICharacter attacker, ICharacter defender, int buttonclick)
     {
 
@@ -465,16 +594,62 @@ public class BattleManager : MonoBehaviour
                 defender.CurrentHp -= damage;
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
                 TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {damage} 데미지를 주었다! 확률 : {ShotChance}");
+                FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
+                Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.red;
 
                 Debug.Log($"{i}발째 : 명중!");
             }
             else
             {
                 TalkManager.Instance.ShowTemp($"{i}발째 : 감나빗! {attacker.Name}의 공격은 빗나갔다! 확률 : {ShotChance}");
+                FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, false);
+
                 Debug.Log($"{i}발째 : 감나빗!");
             }
 
             yield return new WaitForSeconds(0.6f);
+            Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.white;
+        }
+
+        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {damage * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
+        Debug.Log("이거 왜 스킵임?");
+
+    }
+
+    public IEnumerator EnemyShotYourFaceFuck(ICharacter attacker, ICharacter defender, int currentEnemy)
+    {
+
+        int damage = Mathf.RoundToInt(attacker.EquipedGun.ShotDamage);
+        int HowManyShot = 0;
+        float ShotChance = CalcShotChance(attacker, defender);
+
+        for (int i = 0; i < attacker.EquipedGun.ShotCountPerTurn; i++)
+        {
+
+            float Randx = UnityEngine.Random.Range(0, 100);
+
+            if (Randx <= ShotChance)
+            {
+                HowManyShot++;
+
+                defender.CurrentHp -= damage;
+                defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
+                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {damage} 데미지를 주었다! 확률 : {ShotChance}");
+                FireBullet(Enemy_WithMarkers[currentEnemy].marker, minPoint, true);
+                minPoint.gameObject.GetComponent<Image>().color = Color.red;
+
+                Debug.Log($"{i}발째 : 명중!");
+            }
+            else
+            {
+                TalkManager.Instance.ShowTemp($"{i}발째 : 감나빗! {attacker.Name}의 공격은 빗나갔다! 확률 : {ShotChance}");
+                FireBullet(Enemy_WithMarkers[currentEnemy].marker, minPoint, false);
+
+                Debug.Log($"{i}발째 : 감나빗!");
+            }
+
+            yield return new WaitForSeconds(0.6f);
+            minPoint.gameObject.GetComponent<Image>().color = Color.white;
         }
 
         yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {damage * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
@@ -492,7 +667,14 @@ public class BattleManager : MonoBehaviour
         List<IMlee> PlayerSelectedMleeList = new();
         List<IMlee> EnemySelectedMleeList = new();
 
-        marker.gameObject.SetActive(false);
+        marker0.gameObject.SetActive(false);
+        marker1.gameObject.SetActive(false);
+        marker2.gameObject.SetActive(false);
+        marker3.gameObject.SetActive(false);
+        marker4.gameObject.SetActive(false);
+        marker5.gameObject.SetActive(false);
+        marker6.gameObject.SetActive(false);
+        marker7.gameObject.SetActive(false);
         minPoint.gameObject.SetActive(false);
 
         // 선택지 표시(UI는 네가 연결)
@@ -541,7 +723,7 @@ public class BattleManager : MonoBehaviour
             }
 
 
-            
+
             yield return ShowThenWait($"당신은 {PlayerSelectedMleeList[i].Name}을(를) 했다!");
 
             EnemySelectedMleeList.Add(RandomMleeByWeight(ShouldBeEnemy.ActiveSkills));
@@ -619,7 +801,18 @@ public class BattleManager : MonoBehaviour
         MleeButton_4.gameObject.SetActive(false);
 
         minPoint.gameObject.SetActive(true);
-        marker.gameObject.SetActive(true);
+
+        for (int i = 0; i < 8; i++)
+        {
+            if (Enemy_WithMarkers[i].enemies != null)
+            {
+                Enemy_WithMarkers[i].marker.gameObject.SetActive(true);
+            }
+            else
+            {
+                continue;
+            }
+        }
     }
 
     public static IMlee RandomMleeByWeight(IList<IMlee> ActiveMlees)
@@ -649,7 +842,7 @@ public class BattleManager : MonoBehaviour
         return ActiveMlees[ActiveMlees.Count - 1];
     }
 
-    void UpdateMarkerForEnemy0(float dGame) // dGame = method(distance) 결과
+    void UpdateMarkerForEnemy0(float dGame, RectTransform marker, RectTransform endpoint) // dGame = method(distance) 결과
     {
         // 1) 0~1 비율로 변환 (선형)
         float t = Mathf.InverseLerp(gameMin, gameMax, dGame);
@@ -657,9 +850,24 @@ public class BattleManager : MonoBehaviour
 
         // 2) UI 선분(minPoint→maxPoint) 위 위치
         Vector2 A = minPoint.anchoredPosition;
-        Vector2 B = maxPoint.anchoredPosition;
+        Vector2 B = endpoint.anchoredPosition;
         Vector2 P = Vector2.Lerp(A, B, t);
 
         marker.anchoredPosition = P;
+    }
+
+    void FireBullet(RectTransform origin, RectTransform target, bool hit)
+    {
+        if (bulletPrefab == null || origin == null || target == null) return;
+
+        GameObject bullet = Instantiate(bulletPrefab, uiCanvasRoot);
+        RectTransform bulletRect = bullet.GetComponent<RectTransform>();
+        bulletRect.anchoredPosition = origin.anchoredPosition;
+
+        BulletManage bulletManage = bullet.GetComponent<BulletManage>();
+        if (bulletManage != null)
+        {
+            bulletManage.Initialize(target.anchoredPosition, hit);
+        }
     }
 }

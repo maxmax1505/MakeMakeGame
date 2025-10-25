@@ -60,7 +60,7 @@ public class TalkManager : MonoBehaviour
     {
         talkdata.Add(1, new string[] { "안녕" , "bye"});//처음 화면
         talkdata.Add(2, new string[] { "플레이어 선택 대기..." });
-        talkdata.Add(3, new string[] { "당신은 거리를 좁히려 했다." });
+        talkdata.Add(3, new string[] { "상대를 선택하라." });
         talkdata.Add(4, new string[] { "당신은 거리를 유지하려 했다" });
         talkdata.Add(5, new string[] { "당신은 거리를 벌리려 했다." });
     }
