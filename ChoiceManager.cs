@@ -43,6 +43,35 @@ public class ChoiceManager : MonoBehaviour
         //scrollrect.normalizedPosition = new Vector2(0f, 1f);
     }
 
+    public void SpawnButtonsWithTooltips(
+    IList<string> labels,
+    IList<string> tooltips)
+    {
+        if (labels == null || tooltips == null) return;
+
+        choices = new List<string>();
+        foreach (Transform child in buttonParent)
+            Destroy(child.gameObject);
+
+        int count = Mathf.Min(labels.Count, tooltips.Count);
+        for (int i = 0; i < count; i++)
+        {
+            int index = i;
+            string label = labels[i];
+            string tip = tooltips[i];
+
+            GameObject btnObj = Instantiate(buttonPrefab, buttonParent);
+            btnObj.GetComponentInChildren<TextMeshProUGUI>().text = label;
+
+            var trigger = btnObj.GetComponent<TooltipTrigger>();
+            if (trigger != null)
+                trigger.tooltipText = tip;
+
+            btnObj.GetComponent<Button>().onClick.AddListener(() => OnChoiceSelected(index));
+            choices.Add(label);
+        }
+    }
+
     void OnChoiceSelected(int index)
     {
         Debug.Log($"선택한 선택지: {choices[index]} (인덱스 {index})");
@@ -54,6 +83,10 @@ public class ChoiceManager : MonoBehaviour
         foreach (Transform child in buttonParent)
         {
             Destroy(child.gameObject);
+            TooltipUI tooltip = FindObjectOfType<TooltipUI>();
+            if (tooltip != null)
+                tooltip.Hide();
+
         }
     }
 }

@@ -15,7 +15,9 @@ public class BattleManager : MonoBehaviour
 
     public bool battleEnd = false;
     public bool running;
+    public int cachedMoveChoice;
     public int MleeRange = 20;
+    public float ShotRateSpeed = 0.3f;
 
     public static int TargetEnemy_Int;
     public bool IsFirstRun = true;
@@ -224,9 +226,14 @@ public class BattleManager : MonoBehaviour
             // 선택지 표시(UI는 네가 연결)
             TalkManager.Currenttalk = 2;
 
-            buttonchoice.SpawnButtons("거리 좁히기", "거리 유지", "거리 벌리기", " 테스트1", "테스트2", "테스트3", "테스트4");
+            //buttonchoice.SpawnButtons("거리 좁히기", "거리 유지", "거리 벌리기", " 테스트1", "테스트2", "테스트3", "테스트4");
+            buttonchoice.SpawnButtonsWithTooltips(
+                new List<string> { "거리 좁히기", "거리 유지", "거리 벌리기" },
+                new List<string> { "거리를 좁힌다", "거리를 유지한다", "거리를 벌린다" });
 
             yield return new WaitUntil(() => buttonchoice.choicetrue);
+
+            cachedMoveChoice = buttonchoice.choicewhat;
 
             IsFirstRun = false;
         }
@@ -234,7 +241,7 @@ public class BattleManager : MonoBehaviour
 
 
         // 분기 처리
-        switch (buttonchoice.choicewhat) //거리조절 시퀀스
+        switch (cachedMoveChoice) //거리조절 시퀀스
         {
             case 0:
 
@@ -607,7 +614,7 @@ public class BattleManager : MonoBehaviour
                 Debug.Log($"{i}발째 : 감나빗!");
             }
 
-            yield return new WaitForSeconds(0.6f);
+            yield return new WaitForSeconds(ShotRateSpeed);
             Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.white;
         }
 
@@ -648,7 +655,7 @@ public class BattleManager : MonoBehaviour
                 Debug.Log($"{i}발째 : 감나빗!");
             }
 
-            yield return new WaitForSeconds(0.6f);
+            yield return new WaitForSeconds(ShotRateSpeed);
             minPoint.gameObject.GetComponent<Image>().color = Color.white;
         }
 
@@ -698,6 +705,8 @@ public class BattleManager : MonoBehaviour
         //공격 선택 시간
         for (int i = 0; i < 2; i++)
         {
+            buttonchoice.choicetrue = false;
+
             Debug.Log(MleeAtkSelect.ToArray());
 
             buttonchoice.SpawnButtons(MleeAtkSelect.ToArray());
@@ -705,9 +714,12 @@ public class BattleManager : MonoBehaviour
 
             if (i == 1)
             {
-                yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 당신 바로 앞에 있다! 무엇을 하지?");
+                TalkManager.Instance.ShowTemp($"{ShouldBeEnemy.Name}은(는) 당신 바로 앞에 있다! 무엇을 하지?");
             }
+
             PlayerSelectedMleeList.Add(RandomMleePopOut[buttonchoice.choicewhat]);
+
+            yield return new WaitUntil(() => buttonchoice.choicetrue);
 
             if (i == 0)
             {
@@ -863,6 +875,10 @@ public class BattleManager : MonoBehaviour
         GameObject bullet = Instantiate(bulletPrefab, uiCanvasRoot);
         RectTransform bulletRect = bullet.GetComponent<RectTransform>();
         bulletRect.anchoredPosition = origin.anchoredPosition;
+
+        int index = uiCanvasRoot.GetSiblingIndex();
+        bulletRect.SetSiblingIndex(index + 2);
+
 
         BulletManage bulletManage = bullet.GetComponent<BulletManage>();
         if (bulletManage != null)
