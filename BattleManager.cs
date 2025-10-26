@@ -28,27 +28,37 @@ public class BattleManager : MonoBehaviour
 
     public List<RectTransform> Markers;
     public List<RectTransform> EndPoints;
-    public static List<(RectTransform marker, RectTransform endpoint, ICharacter enemies)> Enemy_WithMarkers;
+    public List<Slider>Sliders;
+    public static List<(RectTransform marker, RectTransform endpoint, ICharacter enemies, Slider slider)> Enemy_WithMarkers;
 
     /* 이동, 사격 시퀀스에서 UI에 나와 적 표시 */
     public RectTransform minPoint;   // 가상 직선 경로의 시작점 (min)  
+    public Slider PlayerSlider;
 
     public RectTransform marker0;     // enemies[0] 아이콘
     public RectTransform EndPoint0;   // 끝점   (max)
+    public Slider EnemySlider0;
     public RectTransform marker1;
     public RectTransform EndPoint1;
+    public Slider EnemySlider1;
     public RectTransform marker2;
     public RectTransform EndPoint2;
+    public Slider EnemySlider2;
     public RectTransform marker3;
     public RectTransform EndPoint3;
+    public Slider EnemySlider3;
     public RectTransform marker4;
     public RectTransform EndPoint4;
+    public Slider EnemySlider4;
     public RectTransform marker5;
     public RectTransform EndPoint5;
+    public Slider EnemySlider5;
     public RectTransform marker6;
     public RectTransform EndPoint6;
+    public Slider EnemySlider6;
     public RectTransform marker7;
     public RectTransform EndPoint7;
+    public Slider EnemySlider7;
 
 
 
@@ -89,6 +99,7 @@ public class BattleManager : MonoBehaviour
 
         Markers = new List<RectTransform> { marker0, marker1, marker2, marker3, marker4, marker5, marker6, marker7 };
         EndPoints = new List<RectTransform> { EndPoint0, EndPoint1, EndPoint2, EndPoint3, EndPoint4, EndPoint5, EndPoint6, EndPoint7 };
+        Sliders = new List<Slider> { EnemySlider0, EnemySlider1, EnemySlider2, EnemySlider3, EnemySlider4, EnemySlider5, EnemySlider6, EnemySlider7 };
 
         Enemy_WithMarkers = new();
 
@@ -100,11 +111,12 @@ public class BattleManager : MonoBehaviour
         {
             if (enemies[i] != null)
             {
-                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], enemies[i]));
+                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], enemies[i], Sliders[i]));
+                Enemy_WithMarkers[i].marker.gameObject.SetActive(true);
             }
             else
             {
-                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], null));
+                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], null, Sliders[i]));
             }
         }
 
@@ -173,7 +185,7 @@ public class BattleManager : MonoBehaviour
 
                     if (Enemy_WithMarkers[i].enemies.Distance < MleeRange)
                     {
-                        yield return StartCoroutine(MleePhase(player, Enemy_WithMarkers[i].enemies));
+                        yield return StartCoroutine(MleePhase(player, Enemy_WithMarkers[i].enemies, i));
                     }
                 }
                 else
@@ -520,7 +532,7 @@ public class BattleManager : MonoBehaviour
     public float CalcDistance(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy, MoveCaseNine moveCaseNine)
     {
         float t = Mathf.InverseLerp(gameMin, gameMax, ShouldBeEnemy.Distance);
-        t = Mathf.Pow(t, 2f); // 뒷 인자로 곡선 휘기 (감마 스케일)
+        t = Mathf.Pow(t, 0.5f); // 뒷 인자로 곡선 휘기 (감마 스케일)
         float multiplier = Mathf.Lerp(1f, 2f, t); //최종 감마 보정치 1배에서 최종 2배까지 보정한다는 뜻
 
         switch (moveCaseNine)
@@ -616,6 +628,7 @@ public class BattleManager : MonoBehaviour
                 TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {damage} 데미지를 주었다! 확률 : {ShotChance}");
                 FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
                 Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.red;
+                Enemy_WithMarkers[TargetEnemy_Int].slider.value = (float)Enemy_WithMarkers[TargetEnemy_Int].enemies.CurrentHp / Enemy_WithMarkers[TargetEnemy_Int].enemies.HP;
 
                 Debug.Log($"{i}발째 : 명중!");
             }
@@ -630,6 +643,8 @@ public class BattleManager : MonoBehaviour
             yield return new WaitForSeconds(ShotRateSpeed);
             Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.white;
         }
+
+
 
         yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {damage * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
 
@@ -656,6 +671,7 @@ public class BattleManager : MonoBehaviour
                 TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {damage} 데미지를 주었다! 확률 : {ShotChance}");
                 FireBullet(Enemy_WithMarkers[currentEnemy].marker, minPoint, true);
                 minPoint.gameObject.GetComponent<Image>().color = Color.red;
+                PlayerSlider.value = (float)player.CurrentHp / player.HP;
 
                 Debug.Log($"{i}발째 : 명중!");
             }
@@ -672,11 +688,10 @@ public class BattleManager : MonoBehaviour
         }
 
         yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {damage * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
-        Debug.Log("이거 왜 스킵임?");
 
     }
 
-    public IEnumerator MleePhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy)
+    public IEnumerator MleePhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy, int ShouldBeEnemy_int)
     {
         // 대기 들어가기 전 반드시 초기화
         buttonchoice.choicetrue = false;
@@ -786,6 +801,8 @@ public class BattleManager : MonoBehaviour
                 int totalEnemy = Mathf.RoundToInt(enemyBase * playerMod);
 
                 ShouldBePlayer.CurrentHp -= totalEnemy;
+                PlayerSlider.value = (float)ShouldBePlayer.CurrentHp / ShouldBePlayer.HP;
+
                 yield return ShowThenWait($"{ShouldBeEnemy.Name}의 {EnemySelectedMleeList[i].Name}! {ShouldBePlayer.Name}은 {totalEnemy} 피해를 입었다! 확률 : { totalEnemyHitPer } 원 데미지:{ enemyBase } 기술 연계 : {playerMod}");
             }
             else
@@ -811,6 +828,8 @@ public class BattleManager : MonoBehaviour
                 int totalPlayer = Mathf.RoundToInt(playerBase * enemyMod);
 
                 ShouldBeEnemy.CurrentHp -= totalPlayer;
+                Enemy_WithMarkers[ShouldBeEnemy_int].slider.value = (float)ShouldBeEnemy.CurrentHp / ShouldBeEnemy.HP;
+
                 yield return ShowThenWait($"{ShouldBePlayer.Name}의 {PlayerSelectedMleeList[i].Name}! {ShouldBeEnemy.Name}은(는) {totalPlayer} 피해를 입었다! 확률 : { totalPlayerHitPer } 원 데미지:{ playerBase } 기술 연계 : { enemyMod }");
             }
             else
@@ -885,6 +904,7 @@ public class BattleManager : MonoBehaviour
 
         marker.anchoredPosition = Vector2.MoveTowards(marker.anchoredPosition, P, 800f * 0.1f);
         위치로 천천히 이동하려면*/
+
         marker.anchoredPosition = P;
     }
 
