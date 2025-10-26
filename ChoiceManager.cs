@@ -8,6 +8,7 @@ public class ChoiceManager : MonoBehaviour
 {
     public bool choicetrue = false;
     public int choicewhat = -1;
+    public BattleManager battlemanager;
 
     public GameObject buttonPrefab;      // 프리팹 연결
     public RectTransform buttonParent;       // 버튼을 넣을 부모(Panel)
@@ -65,7 +66,10 @@ public class ChoiceManager : MonoBehaviour
 
             var trigger = btnObj.GetComponent<TooltipTrigger>();
             if (trigger != null)
+            {
                 trigger.tooltipText = tip;
+                trigger.tooltip = battlemanager.tooltipUIInstance;   // BattleManager나 ChoiceManager에서 미리 넣어 둔 TooltipUI
+            }
 
             btnObj.GetComponent<Button>().onClick.AddListener(() => OnChoiceSelected(index));
             choices.Add(label);

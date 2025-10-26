@@ -9,6 +9,7 @@ public class BattleManager : MonoBehaviour
 {
     public ChoiceManager buttonchoice;
     public ButtonValueSelector buttonValueSelector;
+    public TooltipUI tooltipUIInstance;
 
     [SerializeField] RectTransform uiCanvasRoot;
     [SerializeField] GameObject bulletPrefab;
@@ -118,9 +119,23 @@ public class BattleManager : MonoBehaviour
                 continue;
             }
 
+            var trigger = Enemy_WithMarkers[i].marker.GetComponent<TooltipTrigger>();
+            if (trigger != null)
+            {
+                
+                if (trigger != null)
+                {
+                    trigger.enemyIndex = i;
+                    trigger.tooltip = tooltipUIInstance;
+                }
+            }
+
+            if (Enemy_WithMarkers[i].enemies != null)
+            UpdateMarkerForEnemy0(Enemy_WithMarkers[i].enemies.Distance, Enemy_WithMarkers[i].marker, Enemy_WithMarkers[i].endpoint);
+
         }
 
-
+        minPoint.gameObject.GetComponent<TooltipTrigger>().isPlayerMarker = true;
 
         //테스트용
 
@@ -591,7 +606,7 @@ public class BattleManager : MonoBehaviour
         {
 
             float Randx = UnityEngine.Random.Range(0, 100);
-
+            Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.white;
             if (Randx <= ShotChance)
             {
                 HowManyShot++;
@@ -617,7 +632,6 @@ public class BattleManager : MonoBehaviour
         }
 
         yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {damage * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
-        Debug.Log("이거 왜 스킵임?");
 
     }
 
@@ -929,5 +943,10 @@ public class BattleManager : MonoBehaviour
             return string.Empty;
 
         return $"{enemy.Name}\nHP: {enemy.CurrentHp}/{enemy.HP}\nDistance: {enemy.Distance}";
+    }
+
+    public string GetPlayerTooltip()
+    {
+        return $"{player.Name}\nHP: {player.CurrentHp}/{player.HP}\nDistance: {player.Distance}";
     }
 }

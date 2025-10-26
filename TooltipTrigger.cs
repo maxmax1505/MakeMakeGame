@@ -10,6 +10,7 @@ public class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     [TextArea] public string tooltipText;
     public TooltipUI tooltip; // 싱글톤 또는 인스펙터 연결
     public int enemyIndex = -1;      // 마커별로 인덱스를 설정 (버튼이면 -1)
+    public bool isPlayerMarker = false;   // 추가
     BattleManager manager;           // BattleManager 싱글톤이나 참조
 
      
@@ -30,9 +31,12 @@ public class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         {
             text = manager.GetEnemyTooltip(enemyIndex);
         }
+        else if (isPlayerMarker && manager != null)
+        {
+            text = manager.GetPlayerTooltip();
+        }
 
         if (string.IsNullOrEmpty(text)) return;
-
         tooltip.Show(text, transform as RectTransform);
     }
 
