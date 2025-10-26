@@ -20,13 +20,14 @@ public class BattleManager : MonoBehaviour
     public float ShotRateSpeed = 0.3f;
 
     public static int TargetEnemy_Int;
-    public bool IsFirstRun = true;
+    bool IsFirstRun = true;
+    bool IsFirstMove = true;
 
     public int CurrentMovingEnemy_int;
 
     public List<RectTransform> Markers;
     public List<RectTransform> EndPoints;
-    public List<(RectTransform marker, RectTransform endpoint, ICharacter enemies)> Enemy_WithMarkers;
+    public static List<(RectTransform marker, RectTransform endpoint, ICharacter enemies)> Enemy_WithMarkers;
 
     /* 이동, 사격 시퀀스에서 UI에 나와 적 표시 */
     public RectTransform minPoint;   // 가상 직선 경로의 시작점 (min)  
@@ -78,15 +79,12 @@ public class BattleManager : MonoBehaviour
     void Start()
     {
         //테스트용
-        player = new PlayerCharacter();
+        
         guns = new List<IGun> { new NormalPistol() };
-        player.EquipMethod(guns[0]);
-        player.SkillCheckMethod();
-        enemies = new List<ICharacter> { new Monster1() , new Monster1()};
-        enemies[0].EquipMethod(guns[0]);
-        enemies[0].SkillCheckMethod();
-        enemies[1].EquipMethod(guns[0]);
-        enemies[1].SkillCheckMethod();
+        enemies = new List<ICharacter> { new Monster1(guns[0]), new Monster1(guns[0]) };
+        IfNameSame();
+        
+        player = new PlayerCharacter(guns[0]);
 
         Markers = new List<RectTransform> { marker0, marker1, marker2, marker3, marker4, marker5, marker6, marker7 };
         EndPoints = new List<RectTransform> { EndPoint0, EndPoint1, EndPoint2, EndPoint3, EndPoint4, EndPoint5, EndPoint6, EndPoint7 };
@@ -179,7 +177,7 @@ public class BattleManager : MonoBehaviour
             {
                 if (Enemy_WithMarkers[i].enemies != null)
                 {
-                    yield return StartCoroutine(EnemyShotYourFaceFuck(Enemy_WithMarkers[i].enemies, player,i));
+                    yield return StartCoroutine(EnemyShotYourFaceFuck(Enemy_WithMarkers[i].enemies, player, i));
                 }
                 else
                 {
@@ -430,13 +428,13 @@ public class BattleManager : MonoBehaviour
                         {
                             MoveCases = 4; //pR
 
-                            yield return ShowThenWait($"{ShouldBeEnemy}은(는) 거리를 좁히려했지만 실패했다. 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 좁히려했지만 실패했다. 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
                         }
                         else //상대 거리 좁히기 성공
                         {
                             MoveCases = 5; //eA
 
-                            yield return ShowThenWait($"거리 벌리기 실패! {ShouldBeEnemy}은(는) 거리를 좁혔다! 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
+                            yield return ShowThenWait($"거리 벌리기 실패! {ShouldBeEnemy.Name}은(는) 거리를 좁혔다! 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
                         }
 
                         break;
@@ -447,13 +445,13 @@ public class BattleManager : MonoBehaviour
                         {
                             MoveCases = 3; // pA
 
-                            yield return ShowThenWait($"{ShouldBeEnemy}은(는) 거리를 유지하려했지만 실패했다. 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 유지하려했지만 실패했다. 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
                         }
                         else //상대 거리 유지
                         {
                             MoveCases = 1; //pKeK
 
-                            yield return ShowThenWait($"거리 벌리기 실패! {ShouldBeEnemy}은(는) 거리를 유지했다! 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
+                            yield return ShowThenWait($"거리 벌리기 실패! {ShouldBeEnemy.Name}은(는) 거리를 유지했다! 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
                         }
 
                         break;
@@ -462,7 +460,7 @@ public class BattleManager : MonoBehaviour
 
                         MoveCases = 2; //pReR
 
-                        yield return ShowThenWait($"{ShouldBeEnemy} 역시 거리를 벌렸다!");
+                        yield return ShowThenWait($"{ShouldBeEnemy.Name} 역시 거리를 벌렸다!");
 
                         break;
                 }
@@ -864,7 +862,15 @@ public class BattleManager : MonoBehaviour
         Vector2 A = minPoint.anchoredPosition;
         Vector2 B = endpoint.anchoredPosition;
         Vector2 P = Vector2.Lerp(A, B, t);
+        /*
+        if(IsFirstMove == true)
+        {
+            marker.anchoredPosition = P;
+            IsFirstMove = false;
+        }
 
+        marker.anchoredPosition = Vector2.MoveTowards(marker.anchoredPosition, P, 800f * 0.1f);
+        위치로 천천히 이동하려면*/
         marker.anchoredPosition = P;
     }
 
@@ -885,5 +891,43 @@ public class BattleManager : MonoBehaviour
         {
             bulletManage.Initialize(target.anchoredPosition, hit);
         }
+    }
+
+    public void IfNameSame()
+    {
+        string[] suffixes = { " A", " B", " C", " D", " E", " F", " G", " H" };
+        Dictionary<System.Type, int> counters = new();
+
+        foreach (var enemy in enemies)
+        {
+            if (enemy == null) continue;
+
+            var type = enemy.GetType();
+            if (!counters.ContainsKey(type))
+                counters[type] = 0;
+
+            int idx = counters[type];
+            if (idx < suffixes.Length)
+            {
+                enemy.Name += suffixes[idx];
+                counters[type] = idx + 1;
+            }
+            else
+            {
+                enemy.Name += $" ({idx + 1})"; // 8개 넘으면 숫자 붙이는 식으로 예외 처리
+            }
+        }
+    }
+
+    public string GetEnemyTooltip(int index)
+    {
+        if (index < 0 || index >= Enemy_WithMarkers.Count)
+            return string.Empty;
+
+        var enemy = Enemy_WithMarkers[index].enemies;
+        if (enemy == null)
+            return string.Empty;
+
+        return $"{enemy.Name}\nHP: {enemy.CurrentHp}/{enemy.HP}\nDistance: {enemy.Distance}";
     }
 }

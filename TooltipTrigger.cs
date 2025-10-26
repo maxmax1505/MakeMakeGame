@@ -9,21 +9,44 @@ public class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 {
     [TextArea] public string tooltipText;
     public TooltipUI tooltip; // 싱글톤 또는 인스펙터 연결
+    public int enemyIndex = -1;      // 마커별로 인덱스를 설정 (버튼이면 -1)
+    BattleManager manager;           // BattleManager 싱글톤이나 참조
 
-    public void Awake()
+     
+    void Awake()
     {
-            tooltip = FindObjectOfType<TooltipUI>(true); // 비활성 오브젝트까지 검색
+        tooltip = tooltip != null ? tooltip
+                 : Object.FindFirstObjectByType<TooltipUI>();
+
+        if (manager == null)
+            manager = Object.FindFirstObjectByType<BattleManager>();
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (string.IsNullOrEmpty(tooltipText)) return;
-        tooltip.Show(tooltipText, transform as RectTransform);
+        string text = tooltipText;
+
+        if (enemyIndex >= 0 && manager != null)
+        {
+            text = manager.GetEnemyTooltip(enemyIndex);
+        }
+
+        if (string.IsNullOrEmpty(text)) return;
+
+        tooltip.Show(text, transform as RectTransform);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         tooltip.Hide();
     }
+
+
+
+
+
+
+
+
 }
 

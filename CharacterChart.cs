@@ -10,7 +10,7 @@ public class CharacterChart : MonoBehaviour
 
 public interface ICharacter
 {
-    string Name { get; }
+    string Name { get; set; }
     int HP { get; set; }
     int CurrentHp { get; set; }
     float ShotAtk { get; set; }
@@ -23,7 +23,9 @@ public interface ICharacter
 
     Dictionary<MleeATKType, (bool Active, float weight)> SkillData { get; set; }
     List<IMlee> ActiveSkills { get; set; }
+
     void SkillCheckMethod();
+    void Initialize(IGun gun);
 }
 
 public interface IGun
@@ -82,6 +84,11 @@ public enum MleeATKType
 //캐릭터 클래스들
 public class PlayerCharacter : ICharacter
 {
+    public PlayerCharacter(IGun equipgun)
+    {
+        Initialize(equipgun);
+    }
+
     [Header("기본 수치들")]
 
     public string Name { get; set; } = "당신";
@@ -128,13 +135,24 @@ public class PlayerCharacter : ICharacter
         }
     }
 
+    public void Initialize(IGun gun)
+    {
+        SkillCheckMethod();
+        EquipMethod(gun);
+    }
+
 }
 
 public class Monster1 : ICharacter
 {
+    public Monster1(IGun gun)
+    {
+        Initialize(gun);
+    }
+
     [Header("기본 수치들")]
 
-    public string Name { get; set; } = "몬스터1";
+    public string Name { get; set; } = "몬스터";
     public int HP { get; set; } = 10;
     public int CurrentHp { get; set; } = 10;
     public float ShotAtk { get; set; } = 1;
@@ -198,6 +216,11 @@ public class Monster1 : ICharacter
         }
     }
 
+    public void Initialize (IGun gun)
+    {
+        EquipMethod(gun);
+        SkillCheckMethod();
+    }
 }
 
 //총기 클래스들
