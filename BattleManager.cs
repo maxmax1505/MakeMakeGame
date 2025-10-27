@@ -14,7 +14,7 @@ public class BattleManager : MonoBehaviour
     [SerializeField] RectTransform uiCanvasRoot;
     [SerializeField] GameObject bulletPrefab;
 
-    public bool battleEnd = false;
+    public bool ISPlayerNotInBattle = true;
     public bool running;
     public int cachedMoveChoice;
     public int MleeRange = 20;
@@ -28,7 +28,7 @@ public class BattleManager : MonoBehaviour
 
     public List<RectTransform> Markers;
     public List<RectTransform> EndPoints;
-    public List<Slider>Sliders;
+    public List<Slider> Sliders;
     public static List<(RectTransform marker, RectTransform endpoint, ICharacter enemies, Slider slider)> Enemy_WithMarkers;
 
     /* 이동, 사격 시퀀스에서 UI에 나와 적 표시 */
@@ -90,68 +90,24 @@ public class BattleManager : MonoBehaviour
     void Start()
     {
         //테스트용
-        
+
         guns = new List<IGun> { new NormalPistol() };
         enemies = new List<ICharacter> { new Monster1(guns[0]), new Monster1(guns[0]) };
         IfNameSame();
-        
+
         player = new PlayerCharacter(guns[0]);
 
-        Markers = new List<RectTransform> { marker0, marker1, marker2, marker3, marker4, marker5, marker6, marker7 };
-        EndPoints = new List<RectTransform> { EndPoint0, EndPoint1, EndPoint2, EndPoint3, EndPoint4, EndPoint5, EndPoint6, EndPoint7 };
-        Sliders = new List<Slider> { EnemySlider0, EnemySlider1, EnemySlider2, EnemySlider3, EnemySlider4, EnemySlider5, EnemySlider6, EnemySlider7 };
-
-        Enemy_WithMarkers = new();
-
-        while (enemies.Count < 8)
-        {
-            enemies.Add(null);
-        }
-        for (int i = 0; i < 8; i++)
-        {
-            if (enemies[i] != null)
-            {
-                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], enemies[i], Sliders[i]));
-                Enemy_WithMarkers[i].marker.gameObject.SetActive(true);
-            }
-            else
-            {
-                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], null, Sliders[i]));
-            }
-        }
-
-        for (int i = 0; i < 8; i++)
-        {
-            if (Enemy_WithMarkers[i].enemies != null)
-            {
-                UpdateMarkerForEnemy0(Enemy_WithMarkers[i].enemies.Distance, Enemy_WithMarkers[i].marker, Enemy_WithMarkers[i].endpoint);
-            }
-            else
-            {
-                continue;
-            }
-
-            var trigger = Enemy_WithMarkers[i].marker.GetComponent<TooltipTrigger>();
-            if (trigger != null)
-            {
-                
-                if (trigger != null)
-                {
-                    trigger.enemyIndex = i;
-                    trigger.tooltip = tooltipUIInstance;
-                }
-            }
-
-            if (Enemy_WithMarkers[i].enemies != null)
-            UpdateMarkerForEnemy0(Enemy_WithMarkers[i].enemies.Distance, Enemy_WithMarkers[i].marker, Enemy_WithMarkers[i].endpoint);
-
-        }
+        Enemy_WithMakers_RESTART(enemies);
 
         minPoint.gameObject.GetComponent<TooltipTrigger>().isPlayerMarker = true;
 
         //테스트용
+    }
 
-        if (!running) { running = true; StartCoroutine(BattleLoop()); }
+    private void Update()
+    {
+
+        if (!running && ISPlayerNotInBattle == false) { running = true; StartCoroutine(BattleLoop(enemies)); }
     }
 
     IEnumerator WaitForSpace()
@@ -165,12 +121,14 @@ public class BattleManager : MonoBehaviour
         TalkManager.TempTrue = false;
     }
 
-    IEnumerator BattleLoop()
+    IEnumerator BattleLoop(List<ICharacter> enemiesList)
     {
         Debug.Log("전투 시작");
-        battleEnd = false;
+        ISPlayerNotInBattle = false;
 
-        while (!battleEnd)
+        Enemy_WithMakers_RESTART(enemiesList);
+
+        while (!ISPlayerNotInBattle)
         {
             // 1) 플레이어 턴 (입력 대기)
 
@@ -217,8 +175,8 @@ public class BattleManager : MonoBehaviour
 
 
             // 3) 승패 판정
-            if (/* 모두 처치 */ false) { Debug.Log("Victory"); battleEnd = true; }
-            if (/* 전원 사망 */ false) { Debug.Log("Defeat"); battleEnd = true; }
+            if (/* 모두 처치 */ false) { Debug.Log("Victory"); ISPlayerNotInBattle = true; }
+            if (/* 전원 사망 */ false) { Debug.Log("Defeat"); ISPlayerNotInBattle = true; }
 
             // 템포 조절(선택)
             yield return null;
@@ -969,4 +927,75 @@ public class BattleManager : MonoBehaviour
     {
         return $"{player.Name}\nHP: {player.CurrentHp}/{player.HP}\nDistance: {player.Distance}";
     }
+
+    public void Enemy_WithMakers_RESTART(List<ICharacter> enemiesList)
+    {
+        Markers = new List<RectTransform> { marker0, marker1, marker2, marker3, marker4, marker5, marker6, marker7 };
+        EndPoints = new List<RectTransform> { EndPoint0, EndPoint1, EndPoint2, EndPoint3, EndPoint4, EndPoint5, EndPoint6, EndPoint7 };
+        Sliders = new List<Slider> { EnemySlider0, EnemySlider1, EnemySlider2, EnemySlider3, EnemySlider4, EnemySlider5, EnemySlider6, EnemySlider7 };
+
+        marker0.gameObject.SetActive(false);
+        marker1.gameObject.SetActive(false);
+        marker2.gameObject.SetActive(false);
+        marker3.gameObject.SetActive(false);
+        marker4.gameObject.SetActive(false);
+        marker5.gameObject.SetActive(false);
+        marker6.gameObject.SetActive(false);
+        marker7.gameObject.SetActive(false);
+        MleeButton_1.gameObject.SetActive(false);
+        MleeButton_2.gameObject.SetActive(false);
+        MleeButton_3.gameObject.SetActive(false);
+        MleeButton_4.gameObject.SetActive(false);
+
+        Enemy_WithMarkers = new();
+
+        while (enemiesList.Count < 8)
+        {
+            enemiesList.Add(null);
+        }
+        for (int i = 0; i < 8; i++)
+        {
+            if (enemiesList[i] != null)
+            {
+                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], enemiesList[i], Sliders[i]));
+                Enemy_WithMarkers[i].marker.gameObject.SetActive(true);
+            }
+            else
+            {
+                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], null, Sliders[i]));
+            }
+        }
+
+        for (int i = 0; i < 8; i++)
+        {
+            if (Enemy_WithMarkers[i].enemies != null)
+            {
+                UpdateMarkerForEnemy0(Enemy_WithMarkers[i].enemies.Distance, Enemy_WithMarkers[i].marker, Enemy_WithMarkers[i].endpoint);
+            }
+            else
+            {
+                continue;
+            }
+
+            var trigger = Enemy_WithMarkers[i].marker.GetComponent<TooltipTrigger>();
+            if (trigger != null)
+            {
+
+                if (trigger != null)
+                {
+                    trigger.enemyIndex = i;
+                    trigger.tooltip = tooltipUIInstance;
+                }
+            }
+
+            if (Enemy_WithMarkers[i].enemies != null)
+                UpdateMarkerForEnemy0(Enemy_WithMarkers[i].enemies.Distance, Enemy_WithMarkers[i].marker, Enemy_WithMarkers[i].endpoint);
+        }
+    }
+
+    public void LetsStartBattle()
+    {
+        ISPlayerNotInBattle = false;
+    }
 }
+

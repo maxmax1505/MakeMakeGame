@@ -84,9 +84,16 @@ public enum MleeATKType
 //캐릭터 클래스들
 public class PlayerCharacter : ICharacter
 {
+    public static PlayerCharacter player { get; set; }
     public PlayerCharacter(IGun equipgun)
     {
         Initialize(equipgun);
+
+        if (player != null)
+            throw new System.InvalidOperationException("PlayerCharacter is already created.");
+
+        player = this;
+        // 나머지 초기화
     }
 
     [Header("기본 수치들")]
