@@ -62,7 +62,7 @@ public class BattleManager : MonoBehaviour
 
 
     public float gameMin = 0f;       // enemires[].distance의 선형 보간을 위한 수, 최소 distance
-    public static float gameMax = 200f;     // enemires[].distance의 선형 보간을 위한 수, 최대 distance
+    [SerializeField] public static float gameMax = 200f;     // enemires[].distance의 선형 보간을 위한 수, 최대 distance
 
     public Button MleeButton_1;
     public TextMeshProUGUI MleeButtonText_1;
@@ -1088,6 +1088,31 @@ public class BattleManager : MonoBehaviour
         yield return StartCoroutine(spell.CAST(ctx));
     }
 
-    
+    public void ApplyModifiers(IEnumerable<StatModifier> modifiers)
+    {
+        foreach (var mod in modifiers)
+        {
+            switch (mod.statId)
+            {
+                case "체력":
+                    player.HP += mod.value;
+                    break;
+                case "스피드":
+                    player.Speed += mod.value;
+                    break;
+                case "인지":
+                    player.Perception += mod.value;
+                    break;
+                case "마력":
+                    player.Mp += mod.value;
+                    break;
+                case "사격 데미지":
+                    player.ShotAtk += mod.value;
+                    break;
+            }
+        }
+    }
+
+
 }
 

@@ -5,6 +5,7 @@ public class TestBattleStartButton : MonoBehaviour
     public BattleManager battleManager;
     public Canvas BattleCanvas;
     public Canvas PlanetCanvas;
+    public Canvas CoreInventoryCanvas;
 
 
 
@@ -14,5 +15,18 @@ public class TestBattleStartButton : MonoBehaviour
         battleManager.LetsStartBattle();
 
         PlanetCanvas.gameObject.SetActive(false);
+    }
+
+    public void ClickToGoInventory()
+    {
+        CoreInventoryCanvas.gameObject.SetActive(true);
+
+        PlanetCanvas.gameObject.SetActive(false);
+    }
+    public void BackToPlanetFromInven()
+    {
+        PlanetCanvas.gameObject.SetActive(true);
+
+        CoreInventoryCanvas.gameObject.SetActive(false);
     }
 }

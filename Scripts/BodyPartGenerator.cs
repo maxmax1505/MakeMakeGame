@@ -6,33 +6,37 @@ using UnityEngine.UI;
 using TMPro;
 
 public enum BodyPartSlot { Head, Body, Arms, Legs }
+// └─ 파츠가 장착될 슬롯 구분용 열거형
 
 [Serializable]
 public struct StatModifier
 {
-    public string statId;   // "Perception", "Speed" 등
-    public int value;       // +3, -2 …
+    public string statId;   // 영향을 줄 스탯 이름(예: "Perception")
+    public int value;       // 증감 수치(+/-)
 }
 
 [Serializable]
 public class BodyPart : IItem
 {
-    public BodyPartSlot slot;
-    public string name;
-    public StatModifier[] bonuses;
-    public StatModifier[] penalties;
+    public BodyPartSlot slot;      // 어느 슬롯에 장착되는 파츠인지
+    public string name;            // 파츠 이름
+    public StatModifier[] bonuses; // 파츠가 제공하는 버프 목록
+    public StatModifier[] penalties; // 파츠가 주는 디버프 목록
+    public ItemType itemType { get; set; }
 }
+
 [Serializable]
 public struct ModifierOption
 {
-    public string statId;
-    public int minValue;
-    public int maxValue;
-    public float weight;
+    public string statId;   // 후보 스탯 이름
+    public int minValue;    // 증감 최소값
+    public int maxValue;    // 증감 최대값
+    public float weight;    // 등장 확률 가중치
 }
 
 public class BodyPartGenerator : MonoBehaviour
 {
+    // 슬롯별 버프/디버프 후보 테이블
     [SerializeField] List<ModifierOption> headBuffs;
     [SerializeField] List<ModifierOption> headDebuffs;
     [SerializeField] List<ModifierOption> bodyBuffs;
@@ -71,19 +75,32 @@ public class BodyPartGenerator : MonoBehaviour
             _ => (legBuffs, legDebuffs)
         };
 
+        // └─ 0~3 중 하나를 뽑아 슬롯 결정
+
+        // 결정된 슬롯에 맞는 버프/디버프 후보 테이블 선택
+
+        // 후보 중에서 실제 버프/디버프 뽑아서 StatModifier 생성
         var buff = CreateModifier(PickWeighted(buffTable));
         var debuff = CreateModifier(PickWeighted(debuffTable));
 
+        // 완성된 파츠 객체 반환 (버프/디버프는 배열 형태)
         return new BodyPart
         {
             slot = slot,
             name = $"{slot} Mod Mk.{UnityEngine.Random.Range(100, 999)}",
             bonuses = new[] { buff },
-            penalties = new[] { debuff }
+            penalties = new[] { debuff },
+            itemType = slot switch
+            {
+                BodyPartSlot.Head => ItemType.Head,
+                BodyPartSlot.Body => ItemType.Body,
+                BodyPartSlot.Arms => ItemType.Arm,
+                _ => ItemType.Leg
+            }
         };
     }
 
-    StatModifier CreateModifier(ModifierOption option)
+    StatModifier CreateModifier(ModifierOption option) // 옵션의 min~max 범위에서 실제 수치 1개를 뽑아 StatModifier 생성
     {
         int value = UnityEngine.Random.Range(option.minValue, option.maxValue + 1);
         return new StatModifier { statId = option.statId, value = value };
