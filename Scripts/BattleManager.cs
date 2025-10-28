@@ -22,14 +22,13 @@ public class BattleManager : MonoBehaviour
 
     public static int TargetEnemy_Int;
     bool IsFirstRun = true;
-    bool IsFirstMove = true;
 
     public int CurrentMovingEnemy_int;
 
     public List<RectTransform> Markers;
     public List<RectTransform> EndPoints;
     public List<Slider> Sliders;
-    public static List<(RectTransform marker, RectTransform endpoint, ICharacter enemies, Slider slider)> Enemy_WithMarkers;
+    public static List<(RectTransform marker, RectTransform endpoint, ICharacter enemies, Slider slider, Slider manaslider)> Enemy_WithMarkers;
 
     /* 이동, 사격 시퀀스에서 UI에 나와 적 표시 */
     public RectTransform minPoint;   // 가상 직선 경로의 시작점 (min)  
@@ -63,7 +62,7 @@ public class BattleManager : MonoBehaviour
 
 
     public float gameMin = 0f;       // enemires[].distance의 선형 보간을 위한 수, 최소 distance
-    public float gameMax = 200f;     // enemires[].distance의 선형 보간을 위한 수, 최대 distance
+    public static float gameMax = 200f;     // enemires[].distance의 선형 보간을 위한 수, 최대 distance
 
     public Button MleeButton_1;
     public TextMeshProUGUI MleeButtonText_1;
@@ -79,7 +78,6 @@ public class BattleManager : MonoBehaviour
 
     //실행전 캐릭터 객체 초기화
     ICharacter player;
-    IGun normalPistol;
     List<ICharacter> enemies;
     public List<IGun> guns;
 
@@ -571,6 +569,20 @@ public class BattleManager : MonoBehaviour
         return 40 + attacker.EquipedGun.AimCorrection + attacker.Perception - (defender.Speed + defender.Perception / 2);
     }
 
+    public float PercFactor(ICharacter attacker)
+    {
+        return 1f + (attacker.Perception - 10) * 0.04f; // 지각이 10일 때 1.0
+    }
+
+    public void ShotDamageMethod(ICharacter attacker, ICharacter defender)
+    {
+        float Damage;
+
+        Damage = (attacker.EquipedGun.ShotDamage + attacker.ShotAtk) * PercFactor(attacker);
+
+        defender.CurrentHp -= Mathf.RoundToInt(Damage);
+    }
+
     public IEnumerator ShotTargetEnemySelect()
     {
         TargetEnemy_Int = -1;
@@ -587,9 +599,13 @@ public class BattleManager : MonoBehaviour
     public IEnumerator DoFuckingShotTheFAce(ICharacter attacker, ICharacter defender, int buttonclick)
     {
 
-        int damage = Mathf.RoundToInt(attacker.EquipedGun.ShotDamage);
         int HowManyShot = 0;
         float ShotChance = CalcShotChance(attacker, defender);
+
+        int calcdamageX = defender.CurrentHp;
+        ShotDamageMethod(attacker, defender);
+        calcdamageX = calcdamageX - defender.CurrentHp;
+        defender.CurrentHp += calcdamageX;
 
         for (int i = 0; i < attacker.EquipedGun.ShotCountPerTurn; i++)
         {
@@ -600,9 +616,9 @@ public class BattleManager : MonoBehaviour
             {
                 HowManyShot++;
 
-                defender.CurrentHp -= damage;
+                ShotDamageMethod(attacker, defender);
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
-                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {damage} 데미지를 주었다! 확률 : {ShotChance}");
+                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {ShotChance}");
                 FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
                 Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.red;
                 Enemy_WithMarkers[TargetEnemy_Int].slider.value = (float)Enemy_WithMarkers[TargetEnemy_Int].enemies.CurrentHp / Enemy_WithMarkers[TargetEnemy_Int].enemies.HP;
@@ -623,14 +639,17 @@ public class BattleManager : MonoBehaviour
 
 
 
-        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {damage * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
+        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
 
     }
 
     public IEnumerator EnemyShotYourFaceFuck(ICharacter attacker, ICharacter defender, int currentEnemy)
     {
+        int calcdamageX = defender.CurrentHp;
+        ShotDamageMethod(attacker, defender);
+        calcdamageX = calcdamageX - defender.CurrentHp;
+        defender.CurrentHp += calcdamageX;
 
-        int damage = Mathf.RoundToInt(attacker.EquipedGun.ShotDamage);
         int HowManyShot = 0;
         float ShotChance = CalcShotChance(attacker, defender);
 
@@ -643,9 +662,9 @@ public class BattleManager : MonoBehaviour
             {
                 HowManyShot++;
 
-                defender.CurrentHp -= damage;
+                ShotDamageMethod(attacker, defender);
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
-                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {damage} 데미지를 주었다! 확률 : {ShotChance}");
+                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {ShotChance}");
                 FireBullet(Enemy_WithMarkers[currentEnemy].marker, minPoint, true);
                 minPoint.gameObject.GetComponent<Image>().color = Color.red;
                 PlayerSlider.value = (float)player.CurrentHp / player.HP;
@@ -664,7 +683,7 @@ public class BattleManager : MonoBehaviour
             minPoint.gameObject.GetComponent<Image>().color = Color.white;
         }
 
-        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {damage * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
+        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
 
     }
 
@@ -962,7 +981,7 @@ public class BattleManager : MonoBehaviour
         if (enemy == null)
             return string.Empty;
 
-        return $"{enemy.Name}\nHP: {enemy.CurrentHp}/{enemy.HP}\nDistance: {enemy.Distance}";
+        return $"{enemy.Name}\nHP: {enemy.CurrentHp}/{enemy.HP} MP: {enemy.CurrentMp}/{enemy.Mp}\nDistance: {enemy.Distance}";
     }
 
     public string GetPlayerTooltip()
@@ -995,16 +1014,21 @@ public class BattleManager : MonoBehaviour
         {
             enemiesList.Add(null);
         }
+
+        
+
         for (int i = 0; i < 8; i++)
         {
+            Slider manaSlider = Markers[i].GetChild(0)?.GetComponent<Slider>();
+
             if (enemiesList[i] != null)
             {
-                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], enemiesList[i], Sliders[i]));
+                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], enemiesList[i], Sliders[i], manaSlider));
                 Enemy_WithMarkers[i].marker.gameObject.SetActive(true);
             }
             else
             {
-                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], null, Sliders[i]));
+                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], null, Sliders[i], manaSlider));
             }
         }
 
