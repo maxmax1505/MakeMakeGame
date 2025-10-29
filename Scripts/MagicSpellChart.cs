@@ -17,6 +17,7 @@ public interface ISpell
 {
     string Name { get; set; }
     int ManaCost { get; set; }
+    int ApCost { get; set; }
 
     IEnumerator CAST(SpellContext context);
 }
@@ -33,14 +34,14 @@ public class MagicSpellChart : MonoBehaviour
     public static float SpellDamageByMana(ICharacter attaker, ICharacter deffender)
     {
         float lerp;
-        lerp = 1 - Mathf.InverseLerp(0, deffender.Mp, deffender.CurrentMp) + 0.3f;
+        lerp = 1 - Mathf.InverseLerp(0, deffender.MP, deffender.CurrentMp) + 0.3f;
 
         return lerp;
     }
 
     public static float SpellDamageCalc(ICharacter caster, ICharacter defender)
     {
-        return caster.Mp % 20 + caster.WillPower;
+        return caster.MP % 20 + caster.WillPower;
     }
 
     public static IEnumerator ShowDialog(string say)
@@ -57,6 +58,7 @@ public class MagicSpellChart : MonoBehaviour
     {
         public string Name { get; set; } = "전격 방출";
         public int ManaCost { get; set; } = 15;
+        public int ApCost { get; set; } = 5;
 
         public IEnumerator CAST(SpellContext context)
         {
@@ -124,6 +126,7 @@ public class MagicSpellChart : MonoBehaviour
     {
         public string Name { get; set; } = "정신 파멸";
         public int ManaCost { get; set; } = 5;
+        public int ApCost { get; set; } = 5;
 
         public IEnumerator CAST(SpellContext context)
         {
@@ -147,7 +150,7 @@ public class MagicSpellChart : MonoBehaviour
                     context.enemySlots[i].enemy.CurrentMp -= MindDamage;
 
                     TalkManager.Instance.ShowTemp($"{context.enemySlots[i].enemy.Name}에게 {MindDamage}만큼의 정신 충격을 주었다!");
-                    context.enemySlots[i].manaslider.value = (float)context.enemySlots[i].enemy.CurrentMp / context.enemySlots[i].enemy.Mp;
+                    context.enemySlots[i].manaslider.value = (float)context.enemySlots[i].enemy.CurrentMp / context.enemySlots[i].enemy.MP;
 
                     totalDamage += MindDamage;
 
@@ -171,7 +174,7 @@ public class MagicSpellChart : MonoBehaviour
                 MindDamage = Mathf.RoundToInt(spell_dmg * 2* spell_mp * spell_dis);
                 context.Target.CurrentHp -= MindDamage;
 
-                context.PlayerMarker.GetChild(0).GetComponent<Slider>().value = (float)context.Target.CurrentMp / context.Target.Mp;
+                context.PlayerMarker.GetChild(0).GetComponent<Slider>().value = (float)context.Target.CurrentMp / context.Target.MP;
                 TalkManager.Instance.ShowTemp($"{context.Target.Name}에게 {MindDamage}만큼의 정신 충격을 주었다!");
 
                 for (int V = 0; V < 5; V++)

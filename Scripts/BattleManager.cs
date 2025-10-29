@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
+using System.Linq;
 
 public class BattleManager : MonoBehaviour
 {
@@ -16,6 +17,7 @@ public class BattleManager : MonoBehaviour
 
     public bool ISPlayerNotInBattle = true;
     public bool running;
+    public bool ApCheck = false;
     public int cachedMoveChoice;
     public int MleeRange = 20;
     public float ShotRateSpeed = 0.3f;
@@ -153,27 +155,37 @@ public class BattleManager : MonoBehaviour
 
             IsFirstRun = true;
 
-            TalkManager.Instance.ShowTemp("무엇을 할 것인가?");
+            bool isInPlayerTurn = true;
 
-            buttonchoice.choicetrue = false;
-            buttonchoice.choicewhat = -1;
-
-            buttonchoice.SpawnButtons("총기 사격", "마법 시전");
-            yield return new WaitUntil(() => buttonchoice.choicetrue);
-
-            if (buttonchoice.choicewhat == 0)
+            while (isInPlayerTurn == true)
             {
-                yield return StartCoroutine(ShotTargetEnemySelect());
+                TalkManager.Instance.ShowTemp("무엇을 할 것인가?");
 
-                yield return StartCoroutine(ShotingPhase(player, Enemy_WithMarkers[TargetEnemy_Int].enemies));
-
-            }// 여기서 마법 분기************
-            else if (buttonchoice.choicewhat == 1)
-            {
                 buttonchoice.choicetrue = false;
                 buttonchoice.choicewhat = -1;
+                
+                buttonchoice.SpawnButtons("총기 사격", "마법 시전", "행동 종료");
+                yield return new WaitUntil(() => buttonchoice.choicetrue);
 
-                yield return StartCoroutine(MagicPhase(player, enemies[0])); //뒤에 enemy 인수는 아무거나 넣음 ㅅㄱ
+
+                if (buttonchoice.choicewhat == 0)
+                {
+                    yield return StartCoroutine(ShotTargetEnemySelect());
+
+                    yield return StartCoroutine(ShotingPhase(player, Enemy_WithMarkers[TargetEnemy_Int].enemies));
+
+                }// 여기서 마법 분기************
+                else if (buttonchoice.choicewhat == 1)
+                {
+                    buttonchoice.choicetrue = false;
+                    buttonchoice.choicewhat = -1;
+
+                    yield return StartCoroutine(MagicPhase(player, enemies[0])); //뒤에 enemy 인수는 아무거나 넣음 ㅅㄱ
+                }
+                else
+                {
+                    isInPlayerTurn = false;
+                }
             }
 
             for (int i = 0; i < 8; i++)
@@ -883,25 +895,57 @@ public class BattleManager : MonoBehaviour
 
     public IEnumerator MagicPhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy)
     {
-        // 대기 들어가기 전 반드시 초기화
-        buttonchoice.choicetrue = false;
-        buttonchoice.choicewhat = -1;
+        int requiredSpellAp;
+        bool isRightChose = false;
 
-        // 선택지 표시(UI는 네가 연결)
-        TalkManager.Currenttalk = 2;
-
-        List<string> playerSpellList = new();
-
-        foreach (var spells in player.SpellData)
+        while (isRightChose == false)
         {
-            playerSpellList.Add(spells.Name);
+            // 대기 들어가기 전 반드시 초기화
+            buttonchoice.choicetrue = false;
+            buttonchoice.choicewhat = -1;
+
+            // 선택지 표시(UI는 네가 연결)
+            TalkManager.Currenttalk = 2;
+
+            List<string> playerSpellList = new();
+
+            foreach (var spells in player.SpellData)
+            {
+                playerSpellList.Add(spells.Name);
+            }
+
+            int spellCount = playerSpellList.Count;
+
+            playerSpellList.Add("시전 취소");
+
+            buttonchoice.SpawnButtons(playerSpellList.ToArray());
+            yield return new WaitUntil(() => buttonchoice.choicetrue);
+
+            if (buttonchoice.choicewhat == spellCount)
+            {
+                // “행동 끝내기”를 골랐으니 주문 실행 없이 빠져나감
+                isRightChose = true;
+                yield return ShowThenWait("당신은 주문 시전을 취소했다");
+                yield break;
+            }
+
+
+            requiredSpellAp = ShouldBePlayer.SpellData[buttonchoice.choicewhat].ApCost;
+
+            if ( requiredSpellAp <= player.CurrentAp)
+            {
+                break;
+            }
+
+            yield return ShowThenWait($"행동력이 부족합니다! 필요 AP: {requiredSpellAp}, 현재 AP: {player.CurrentAp}");
         }
 
-        buttonchoice.SpawnButtons(playerSpellList.ToArray());
+        if (isRightChose == false)
+        {
+            player.CurrentAp -= ShouldBePlayer.SpellData[buttonchoice.choicewhat].ApCost;
 
-        yield return new WaitUntil(() => buttonchoice.choicetrue);
-
-        yield return StartCoroutine(ExecuteSpell(ShouldBePlayer.SpellData[buttonchoice.choicewhat], ShouldBePlayer, ShouldBeEnemy));
+            yield return StartCoroutine(ExecuteSpell(ShouldBePlayer.SpellData[buttonchoice.choicewhat], ShouldBePlayer, ShouldBeEnemy));
+        }
     }
 
     void UpdateMarkerForEnemy0(float dGame, RectTransform marker, RectTransform endpoint) // dGame = method(distance) 결과
@@ -981,7 +1025,7 @@ public class BattleManager : MonoBehaviour
         if (enemy == null)
             return string.Empty;
 
-        return $"{enemy.Name}\nHP: {enemy.CurrentHp}/{enemy.HP} MP: {enemy.CurrentMp}/{enemy.Mp}\nDistance: {enemy.Distance}";
+        return $"{enemy.Name}\nHP: {enemy.CurrentHp}/{enemy.HP} MP: {enemy.CurrentMp}/{enemy.MP}\nDistance: {enemy.Distance}";
     }
 
     public string GetPlayerTooltip()
@@ -1088,31 +1132,51 @@ public class BattleManager : MonoBehaviour
         yield return StartCoroutine(spell.CAST(ctx));
     }
 
-    public void ApplyModifiers(IEnumerable<StatModifier> modifiers)
+    public void ApplyModifiers(IEnumerable<StatModifier> modifiers, bool IsPlus)
     {
         foreach (var mod in modifiers)
         {
+            int Valu;
+
+            if (IsPlus == false)
+            {
+                Valu = mod.value * -1;
+            }
+            else
+            {
+                Valu = mod.value;
+            }
+
             switch (mod.statId)
             {
                 case "체력":
-                    player.HP += mod.value;
+                    player.HP += Valu;
                     break;
                 case "스피드":
-                    player.Speed += mod.value;
+                    player.Speed += Valu;
                     break;
                 case "인지":
-                    player.Perception += mod.value;
+                    player.Perception += Valu;
                     break;
                 case "마력":
-                    player.Mp += mod.value;
+                    player.MP += Valu;
                     break;
                 case "사격 데미지":
-                    player.ShotAtk += mod.value;
+                    player.ShotAtk += Valu;
                     break;
             }
         }
     }
 
+    public string PlayerStat()
+    {
+        string playerstat;
+        playerstat = $"플레이어 스탯 \n \n체력 : {player.HP} 정신력 : {player.MP}\n" +
+            $"스피드 : {player.Speed} 의지력 : {player.WillPower}\n" +
+            $"사격 데미지 : {player.ShotAtk} 인지 : {player.Perception}";
 
+        return playerstat;
+    }
 }
+
 

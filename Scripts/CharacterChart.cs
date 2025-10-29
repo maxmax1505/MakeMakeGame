@@ -7,8 +7,10 @@ public interface ICharacter
     string Name { get; set; }
     int HP { get; set; }
     int CurrentHp { get; set; }
-    int Mp { get; set; }
+    int MP { get; set; }
     int CurrentMp { get; set; }
+    int AP { get; set; }
+    int CurrentAp { get; set; }
     float WillPower { get; set; }
     float ShotAtk { get; set; }
     float Speed { get; set; }
@@ -50,8 +52,10 @@ public class PlayerCharacter : ICharacter
     public string Name { get; set; } = "당신";
     public int HP { get; set; } = 10;
     public int CurrentHp { get; set; } = 10;
-    public int Mp { get; set; } = 10;
+    public int MP { get; set; } = 10;
     public int CurrentMp { get; set; } = 10;
+    public int AP { get; set; } = 10;
+    public int CurrentAp { get; set; } = 10;
     public float WillPower { get; set; } = 3;
     public float ShotAtk { get; set; } = 1;
     public float Speed { get; set; } = 10;
@@ -116,8 +120,10 @@ public class Monster1 : ICharacter
     public string Name { get; set; } = "몬스터";
     public int HP { get; set; } = 10;
     public int CurrentHp { get; set; } = 10;
-    public int Mp { get; set; } = 10;
+    public int MP { get; set; } = 10;
     public int CurrentMp { get; set; } = 10;
+    public int AP { get; set; }
+    public int CurrentAp { get; set; }
     public float WillPower { get; set; } = 3;
     public float ShotAtk { get; set; } = 1;
     public float Speed { get; set; } = 10;

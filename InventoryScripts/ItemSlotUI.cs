@@ -1,65 +1,66 @@
-using System;
+ï»¿using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
-
 public class ItemSlotUI : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI ItemText;
-    [SerializeField] Button button;
 
     IItem currentItem;
     Action<IItem> onClicked;
 
-    public void Bind(IItem item, Action<IItem> clickHandler)
+    ItemListItem owner;
+
+    public void Init(ItemListItem ownerItem)
     {
-        currentItem = item;
-        onClicked = clickHandler;
-
-        Debug.Log($"[Bind] {name} currentItem={item}");
-
-        switch (item)
-        {
-            case IGun gun:
-
-                ItemText.text = $"{gun.Name} / µ¥¹ÌÁö : {gun.ShotDamage} ¡¿ {gun.ShotCountPerTurn}";
-
-                break;
-
-            case BodyPart bodyPart:
-
-                ItemText.text = $"-{bodyPart.name}-\nÀÛ¿ë: <color=green>{bodyPart.bonuses[0].statId} {bodyPart.bonuses[0].value}</color>\nºÎÀÛ¿ë: <color=red>{bodyPart.penalties[0].statId}{bodyPart.penalties[0].value}</color>";
-
-                break;
-        }
-
-        button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(() =>
-        {
-            Debug.Log($"[Button] clicked {currentItem} from {name}");
-            onClicked?.Invoke(currentItem);
-        });
-
-        Debug.Log("¹ÙÀÎµå");
+        owner = ownerItem;
     }
 
-    public void Bind_Inventory(IItem item)
+
+    public void Bind(IItem item, Button slotButton, GameObject slotObject)
     {
+
+
         switch (item)
         {
             case IGun gun:
 
-                ItemText.text = $"{gun.Name} / µ¥¹ÌÁö : {gun.ShotDamage} ¡¿ {gun.ShotCountPerTurn}";
+                ItemText.text = $"{gun.Name} / ë°ë¯¸ì§€ : {gun.ShotDamage} Ã— {gun.ShotCountPerTurn}";
 
                 break;
 
             case BodyPart bodyPart:
 
-                ItemText.text = $"-{bodyPart.name}-\nÀÛ¿ë: <color=green>{bodyPart.bonuses[0].statId} {bodyPart.bonuses[0].value}</color>\nºÎÀÛ¿ë: <color=red>{bodyPart.penalties[0].statId}{bodyPart.penalties[0].value}</color>";
+                ItemText.text = $"-{bodyPart.name}-\nì‘ìš©: <color=green>{bodyPart.bonuses[0].statId} {bodyPart.bonuses[0].value}</color>\në¶€ì‘ìš©: <color=red>{bodyPart.penalties[0].statId}{bodyPart.penalties[0].value}</color>";
 
                 break;
         }
+
+        slotButton.onClick.RemoveAllListeners();
+        slotButton.onClick.AddListener(() => owner.UnEqquip(item, slotObject));// ì´ê±° ì±„ì›Œì•¼í•¨ ~~
+    }
+
+    public void Bind_Inventory(IItem item, Button slotButton, GameObject slotObject)
+    {
+
+        switch (item)
+        {
+            case IGun gun:
+
+                ItemText.text = $"{gun.Name} / ë°ë¯¸ì§€ : {gun.ShotDamage} Ã— {gun.ShotCountPerTurn}";
+
+                break;
+
+            case BodyPart bodyPart:
+
+                ItemText.text = $"-{bodyPart.name}-\nì‘ìš©: <color=green>{bodyPart.bonuses[0].statId} {bodyPart.bonuses[0].value}</color>\në¶€ì‘ìš©: <color=red>{bodyPart.penalties[0].statId}{bodyPart.penalties[0].value}</color>";
+
+                break;
+        }
+
+        slotButton.onClick.RemoveAllListeners();
+        slotButton.onClick.AddListener(() => owner.Eqquip(item, slotObject));
     }
 }
