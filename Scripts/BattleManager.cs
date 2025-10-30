@@ -132,6 +132,7 @@ public class BattleManager : MonoBehaviour
         while (!ISPlayerNotInBattle)
         {
             // 1) 플레이어 턴 (입력 대기)
+            player.CurrentAp = player.AP;
 
             for (int i = 0; i < 8; i++)
             {
@@ -159,11 +160,13 @@ public class BattleManager : MonoBehaviour
 
             while (isInPlayerTurn == true)
             {
+                Debug.Log($"현재 AP : {player.CurrentAp} / {player.AP}");
+
                 TalkManager.Instance.ShowTemp("무엇을 할 것인가?");
 
                 buttonchoice.choicetrue = false;
                 buttonchoice.choicewhat = -1;
-                
+
                 buttonchoice.SpawnButtons("총기 사격", "마법 시전", "행동 종료");
                 yield return new WaitUntil(() => buttonchoice.choicetrue);
 
@@ -285,29 +288,65 @@ public class BattleManager : MonoBehaviour
 
     public IEnumerator ShotingPhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy)
     {
-        // 대기 들어가기 전 반드시 초기화
-        buttonchoice.choicetrue = false;
-        buttonchoice.choicewhat = -1;
+        bool isPlayerInBattle = true;
 
-        // 선택지 표시(UI는 네가 연결)
-        TalkManager.Currenttalk = 2;
-
-        buttonchoice.SpawnButtons("표준 사격", "조준 사격", "정밀 조준 사격", "연속 사격", "제압 사격");
-
-        yield return new WaitUntil(() => buttonchoice.choicetrue);
-
-        switch (buttonchoice.choicewhat) //사격 시퀀스
+        while (isPlayerInBattle == true)
         {
-            case 0:
+            // 대기 들어가기 전 반드시 초기화
+            buttonchoice.choicetrue = false;
+            buttonchoice.choicewhat = -1;
 
-                yield return StartCoroutine(DoFuckingShotTheFAce(ShouldBePlayer, ShouldBeEnemy, 0));
+            // 선택지 표시(UI는 네가 연결)
+            if (ShouldBeEnemy.CurrentHp <= 0)
+            {
+                yield return ShowThenWait("대상이 없다! 대상을 다시 지정해야 한다.");
+                yield return StartCoroutine(ShotTargetEnemySelect());
+                ShouldBeEnemy = Enemy_WithMarkers[TargetEnemy_Int].enemies;
+            }
 
-                break;
+            TalkManager.Currenttalk = 2;
+            buttonchoice.SpawnButtons("대상 재지정", "표준 사격", "조준 사격", "정밀 조준 사격", "연속 사격", "제압 사격", "행동 종료");
 
-            case 1:
+            yield return new WaitUntil(() => buttonchoice.choicetrue);
 
-                break;
+            switch (buttonchoice.choicewhat) //사격 시퀀스
+            {
+                case 0:
+
+                    Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.white;
+                    yield return StartCoroutine(ShotTargetEnemySelect());
+                    ShouldBeEnemy = Enemy_WithMarkers[TargetEnemy_Int].enemies;
+
+
+                    break;
+
+                case 1:
+
+                    if (player.CurrentAp >= 2)
+                    {
+                        yield return StartCoroutine(DoFuckingShotTheFAce(ShouldBePlayer, ShouldBeEnemy, 0));
+                        player.CurrentAp -= 2;
+                    }
+                    else
+                    {
+                        yield return ShowThenWait($"행동력이 부족하다! 당신의 행동력 = {player.CurrentAp}");
+                    }
+
+                    break;
+
+                case 6:
+
+                    yield return ShowThenWait("당신은 행동을 끝마쳤다.");
+                    isPlayerInBattle = false;
+
+                    break;
+            }
+
+            
+            DeathOfEnemy();
         }
+
+        Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.white;
         //yield return new WaitForSeconds(0.2f);
     }
 
@@ -646,13 +685,17 @@ public class BattleManager : MonoBehaviour
             }
 
             yield return new WaitForSeconds(ShotRateSpeed);
-            Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.white;
+            Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.blue;
         }
-
-
 
         yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
 
+        if (defender.CurrentHp <= 0)
+        {
+            yield return ShowThenWait($"{defender.Name}은 죽음에 이르는 피해를 입었다!");
+        }
+        DeathOfEnemy();
+        Enemy_WithMakers_RESTART(enemies);
     }
 
     public IEnumerator EnemyShotYourFaceFuck(ICharacter attacker, ICharacter defender, int currentEnemy)
@@ -864,6 +907,14 @@ public class BattleManager : MonoBehaviour
                 continue;
             }
         }
+
+        if(ShouldBeEnemy.CurrentHp <= 0)
+        {
+            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 죽음에 이르는 피해를 입었다!");
+        }
+
+        DeathOfEnemy();
+        Enemy_WithMakers_RESTART(enemies);
     }
 
     public static IMlee RandomMleeByWeight(IList<IMlee> ActiveMlees)
@@ -932,7 +983,7 @@ public class BattleManager : MonoBehaviour
 
             requiredSpellAp = ShouldBePlayer.SpellData[buttonchoice.choicewhat].ApCost;
 
-            if ( requiredSpellAp <= player.CurrentAp)
+            if (requiredSpellAp <= player.CurrentAp)
             {
                 break;
             }
@@ -945,7 +996,19 @@ public class BattleManager : MonoBehaviour
             player.CurrentAp -= ShouldBePlayer.SpellData[buttonchoice.choicewhat].ApCost;
 
             yield return StartCoroutine(ExecuteSpell(ShouldBePlayer.SpellData[buttonchoice.choicewhat], ShouldBePlayer, ShouldBeEnemy));
+
+            for(int i = 0; i < Enemy_WithMarkers.Count; i++)
+            {
+                if (Enemy_WithMarkers[i].enemies == null) continue;
+
+                if (Enemy_WithMarkers[i].enemies.CurrentHp <= 0)
+                {
+                    yield return ShowThenWait($"{Enemy_WithMarkers[i].enemies.Name}은(는) 죽음에 이르는 피해를 입었다!");
+                }
+            }
         }
+        DeathOfEnemy();
+        Enemy_WithMakers_RESTART(enemies);
     }
 
     void UpdateMarkerForEnemy0(float dGame, RectTransform marker, RectTransform endpoint) // dGame = method(distance) 결과
@@ -1059,7 +1122,7 @@ public class BattleManager : MonoBehaviour
             enemiesList.Add(null);
         }
 
-        
+
 
         for (int i = 0; i < 8; i++)
         {
@@ -1177,6 +1240,30 @@ public class BattleManager : MonoBehaviour
 
         return playerstat;
     }
+
+    public void DeathOfEnemy()
+    {
+        for (int i = 0; i < Enemy_WithMarkers.Count; i++)
+        {
+            var entry = Enemy_WithMarkers[i];
+            var enemy = entry.enemies;
+            if (enemy == null) continue;
+
+            if (enemy.CurrentHp <= 0)
+            {
+                Enemy_WithMarkers[i] = (
+                    entry.marker,
+                    entry.endpoint,
+                    null,
+                    entry.slider,
+                    entry.manaslider
+                );
+
+                enemies[i] = null;  // 실제 적 리스트도 null 처리
+            }
+        }
+
+        // 적 정리 후 UI/슬롯 재배치
+        Enemy_WithMakers_RESTART(enemies);
+    }
 }
-
-

@@ -31,7 +31,7 @@ public class ItemListItem : MonoBehaviour
     public List<IItem> PlayerEquippedList;
     public List<IItem> PlayerInventoryList;
 
-    Dictionary<ItemType, SlotNumber> slotNumberLookup;
+    [SerializeField] public Dictionary<ItemType, SlotNumber> slotNumberLookup;
 
     void Awake()
     {
@@ -63,69 +63,14 @@ public class ItemListItem : MonoBehaviour
 
     public void Refresh()
     {
-        ResetSlotCounters();
-        ClearAllSlots();
-        PopulateEquippedSlots();
-        PopulateInventorySlots();
-        UpdateStatUI();
-        UpdateCountersUI();
-    }
+        List<Transform> roots = new List<Transform> { contentRoot_Gun, contentRoot_Arm, contentRoot_Body, contentRoot_Head, contentRoot_Leg };
 
-    void ResetSlotCounters()
-    {
         foreach (var kv in slotNumberLookup)
         {
             kv.Value.AllSlotNum = 0;
-            kv.Value.CurrentSlotNum = Mathf.Clamp(kv.Value.CurrentSlotNum, 1, 1);
+            //kv.Value.CurrentSlotNum = Mathf.Clamp(kv.Value.CurrentSlotNum, 1, 1);
             kv.Value.UpdateSlotNum();
         }
-    }
-
-    Transform GetRootForItem(IItem item)
-    {
-        return item.itemType switch
-        {
-            ItemType.Gun  => contentRoot_Gun,
-            ItemType.Head => contentRoot_Head,
-            ItemType.Body => contentRoot_Body,
-            ItemType.Arm  => contentRoot_Arm,
-            _             => contentRoot_Leg
-        };
-    }
-
-    void PopulateEquippedSlots()
-    {
-        foreach (var item in PlayerEquippedList)
-        {
-            var root = GetRootForItem(item);
-            AdjustCounter(item.itemType, +1);
-
-            var slotInstance = Instantiate(ItemPrefab, root);
-            var button = slotInstance.GetComponent<Button>();
-            slotInstance.Init(this);
-            slotInstance.Bind(item, button, slotInstance.gameObject);
-        }
-    }
-
-    void PopulateInventorySlots()
-    {
-        foreach (var item in PlayerInventoryList)
-        {
-            var slot = Instantiate(ItemPrefab, ContentInventory);
-            var button = slot.GetComponent<Button>();
-            slot.Init(this);
-            slot.Bind_Inventory(item, button, slot.gameObject);
-        }
-    }
-
-    void ClearAllSlots()
-    {
-        var roots = new[]
-        {
-            contentRoot_Gun, contentRoot_Arm,
-            contentRoot_Body, contentRoot_Head,
-            contentRoot_Leg, ContentInventory
-        };
 
         foreach (var root in roots)
         {
@@ -133,15 +78,49 @@ public class ItemListItem : MonoBehaviour
             foreach (Transform child in root)
                 Destroy(child.gameObject);
         }
-    }
 
-    void AdjustCounter(ItemType type, int delta)
-    {
-        if (slotNumberLookup.TryGetValue(type, out var slotNumber))
+        foreach (var item in PlayerEquippedList)
         {
-            slotNumber.AllSlotNum += delta;
-            if (slotNumber.AllSlotNum <= 0)
-                slotNumber.CurrentSlotNum = 0;
+            Transform root = item.itemType switch
+            {
+                ItemType.Gun => contentRoot_Gun,
+                ItemType.Head => contentRoot_Head,
+                ItemType.Body => contentRoot_Body,
+                ItemType.Arm => contentRoot_Arm,
+                _ => contentRoot_Leg
+            };
+
+            slotNumberLookup[item.itemType].AllSlotNum++;
+            slotNumberLookup[item.itemType].UpdateSlotNum();
+
+            var slotInstance = Instantiate(ItemPrefab, root);
+            Button slotButton = slotInstance.GetComponent<Button>();
+            slotInstance.Init(this);
+            slotInstance.Bind(item, slotButton, slotInstance.gameObject);
+        }
+
+        foreach (Transform child in ContentInventory)
+            Destroy(child.gameObject);
+
+        foreach (var item in PlayerInventoryList)
+        {
+            var slot = Instantiate(ItemPrefab, ContentInventory);
+            Button slotButton = slot.GetComponent<Button>();
+            slot.Init(this);
+            slot.Bind_Inventory(item, slotButton, slot.gameObject);
+        }
+
+        Update_StatUI();
+
+        foreach (var v in slotNumberLookup)
+        {
+            v.Value.CurrentSlotNum = Mathf.Clamp(v.Value.CurrentSlotNum, 0, v.Value.AllSlotNum);
+
+           if(v.Value.AllSlotNum == 1)
+            {
+                v.Value.CurrentSlotNum = 1;
+            }
+            v.Value.UpdateSlotNum();
         }
     }
 
@@ -151,7 +130,12 @@ public class ItemListItem : MonoBehaviour
 
         PlayerEquippedList?.Remove(item);
         PlayerInventoryList.Add(item);
-        AdjustCounter(item.itemType, -1);
+
+        if (slotNumberLookup.TryGetValue(item.itemType, out var counter))
+        {
+            counter.AllSlotNum--;
+            counter.UpdateSlotNum();
+        }
 
         Destroy(slotObject);
         Refresh();
@@ -161,6 +145,8 @@ public class ItemListItem : MonoBehaviour
             battleManager.ApplyModifiers(bodyPart.bonuses, false);
             battleManager.ApplyModifiers(bodyPart.penalties, false);
         }
+
+        Refresh();
     }
 
     public void Eqquip(IItem item, GameObject slotObject)
@@ -169,7 +155,12 @@ public class ItemListItem : MonoBehaviour
 
         PlayerInventoryList.Remove(item);
         PlayerEquippedList.Add(item);
-        AdjustCounter(item.itemType, +1);
+
+        if (slotNumberLookup.TryGetValue(item.itemType, out var counter))
+        {
+            counter.AllSlotNum++;
+            counter.UpdateSlotNum();
+        }
 
         Destroy(slotObject);
         Refresh();
@@ -179,25 +170,14 @@ public class ItemListItem : MonoBehaviour
             battleManager.ApplyModifiers(bodyPart.bonuses, true);
             battleManager.ApplyModifiers(bodyPart.penalties, true);
         }
+
+        Refresh();
     }
 
-    void UpdateStatUI()
+
+    void Update_StatUI()
     {
         if (playerStatUI_Text != null)
             playerStatUI_Text.text = battleManager.PlayerStat();
-    }
-
-    void UpdateCountersUI()
-    {
-        foreach (var kv in slotNumberLookup)
-        {
-            var slot = kv.Value;
-            if (slot.AllSlotNum <= 0)
-                slot.CurrentSlotNum = 0;
-            else
-                slot.CurrentSlotNum = Mathf.Clamp(slot.CurrentSlotNum, 1, slot.AllSlotNum);
-
-            slot.UpdateSlotNum();
-        }
     }
 }
