@@ -35,6 +35,8 @@ public class BattleManager : MonoBehaviour
     /* 이동, 사격 시퀀스에서 UI에 나와 적 표시 */
     public RectTransform minPoint;   // 가상 직선 경로의 시작점 (min)  
     public Slider PlayerSlider;
+    public Slider ApSlider;
+    public TextMeshProUGUI ApText;
 
     public RectTransform marker0;     // enemies[0] 아이콘
     public RectTransform EndPoint0;   // 끝점   (max)
@@ -133,6 +135,7 @@ public class BattleManager : MonoBehaviour
         {
             // 1) 플레이어 턴 (입력 대기)
             player.CurrentAp = player.AP;
+            Update_ApSlider();
 
             for (int i = 0; i < 8; i++)
             {
@@ -324,8 +327,10 @@ public class BattleManager : MonoBehaviour
 
                     if (player.CurrentAp >= 2)
                     {
-                        yield return StartCoroutine(DoFuckingShotTheFAce(ShouldBePlayer, ShouldBeEnemy, 0));
                         player.CurrentAp -= 2;
+                        Update_ApSlider();
+                        yield return StartCoroutine(DoFuckingShotTheFAce(ShouldBePlayer, ShouldBeEnemy, 0));
+                        
                     }
                     else
                     {
@@ -994,6 +999,7 @@ public class BattleManager : MonoBehaviour
         if (isRightChose == false)
         {
             player.CurrentAp -= ShouldBePlayer.SpellData[buttonchoice.choicewhat].ApCost;
+            Update_ApSlider();
 
             yield return StartCoroutine(ExecuteSpell(ShouldBePlayer.SpellData[buttonchoice.choicewhat], ShouldBePlayer, ShouldBeEnemy));
 
@@ -1265,5 +1271,11 @@ public class BattleManager : MonoBehaviour
 
         // 적 정리 후 UI/슬롯 재배치
         Enemy_WithMakers_RESTART(enemies);
+    }
+
+    public void Update_ApSlider()
+    {
+        ApSlider.value = Mathf.InverseLerp(0, player.AP, player.CurrentAp);
+        ApText.text = $"{player.CurrentAp}/{player.AP}";
     }
 }
