@@ -32,14 +32,14 @@ public class BattleManager : MonoBehaviour
     public List<Slider> Sliders;
     public static List<(RectTransform marker, RectTransform endpoint, ICharacter enemies, Slider slider, Slider manaslider)> Enemy_WithMarkers;
 
-    /* ÀÌµ¿, »ç°İ ½ÃÄö½º¿¡¼­ UI¿¡ ³ª¿Í Àû Ç¥½Ã */
-    public RectTransform minPoint;   // °¡»ó Á÷¼± °æ·ÎÀÇ ½ÃÀÛÁ¡ (min)  
+    /* ì´ë™, ì‚¬ê²© ì‹œí€€ìŠ¤ì—ì„œ UIì— ë‚˜ì™€ ì  í‘œì‹œ */
+    public RectTransform minPoint;   // ê°€ìƒ ì§ì„  ê²½ë¡œì˜ ì‹œì‘ì  (min)  
     public Slider PlayerSlider;
     public Slider ApSlider;
     public TextMeshProUGUI ApText;
 
-    public RectTransform marker0;     // enemies[0] ¾ÆÀÌÄÜ
-    public RectTransform EndPoint0;   // ³¡Á¡   (max)
+    public RectTransform marker0;     // enemies[0] ì•„ì´ì½˜
+    public RectTransform EndPoint0;   // ëì    (max)
     public Slider EnemySlider0;
     public RectTransform marker1;
     public RectTransform EndPoint1;
@@ -65,8 +65,8 @@ public class BattleManager : MonoBehaviour
 
 
 
-    public float gameMin = 0f;       // enemires[].distanceÀÇ ¼±Çü º¸°£À» À§ÇÑ ¼ö, ÃÖ¼Ò distance
-    [SerializeField] public static float gameMax = 200f;     // enemires[].distanceÀÇ ¼±Çü º¸°£À» À§ÇÑ ¼ö, ÃÖ´ë distance
+    public float gameMin = 0f;       // enemires[].distanceì˜ ì„ í˜• ë³´ê°„ì„ ìœ„í•œ ìˆ˜, ìµœì†Œ distance
+    [SerializeField] public static float gameMax = 200f;     // enemires[].distanceì˜ ì„ í˜• ë³´ê°„ì„ ìœ„í•œ ìˆ˜, ìµœëŒ€ distance
 
     public Button MleeButton_1;
     public TextMeshProUGUI MleeButtonText_1;
@@ -80,7 +80,7 @@ public class BattleManager : MonoBehaviour
 
 
 
-    //½ÇÇàÀü Ä³¸¯ÅÍ °´Ã¼ ÃÊ±âÈ­
+    //ì‹¤í–‰ì „ ìºë¦­í„° ê°ì²´ ì´ˆê¸°í™”
     ICharacter player;
     List<ICharacter> enemies;
     public List<IGun> guns;
@@ -91,7 +91,7 @@ public class BattleManager : MonoBehaviour
 
     void Start()
     {
-        //Å×½ºÆ®¿ë
+        //í…ŒìŠ¤íŠ¸ìš©
 
         guns = new List<IGun> { new NormalPistol() };
         Debug.Log(guns[0].Name);
@@ -104,7 +104,7 @@ public class BattleManager : MonoBehaviour
 
         minPoint.gameObject.GetComponent<TooltipTrigger>().isPlayerMarker = true;
 
-        //Å×½ºÆ®¿ë
+        //í…ŒìŠ¤íŠ¸ìš©
     }
 
     private void Update()
@@ -115,10 +115,10 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator WaitForSpace()
     {
-        // °°Àº ÇÁ·¹ÀÓ¿¡ ´­·Á ÀÖ´ø ½ºÆäÀÌ½º ÀÜ»ó Á¦°Å
+        // ê°™ì€ í”„ë ˆì„ì— ëˆŒë ¤ ìˆë˜ ìŠ¤í˜ì´ìŠ¤ ì”ìƒ ì œê±°
         yield return null;
 
-        // '»õ·Î' ´­¸®´Â ¼ø°£À» ±â´Ù¸°´Ù
+        // 'ìƒˆë¡œ' ëˆŒë¦¬ëŠ” ìˆœê°„ì„ ê¸°ë‹¤ë¦°ë‹¤
         yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
 
         TalkManager.TempTrue = false;
@@ -126,14 +126,14 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator BattleLoop(List<ICharacter> enemiesList)
     {
-        Debug.Log("ÀüÅõ ½ÃÀÛ");
+        Debug.Log("ì „íˆ¬ ì‹œì‘");
         ISPlayerNotInBattle = false;
 
         Enemy_WithMakers_RESTART(enemiesList);
 
         while (!ISPlayerNotInBattle)
         {
-            // 1) ÇÃ·¹ÀÌ¾î ÅÏ (ÀÔ·Â ´ë±â)
+            // 1) í”Œë ˆì´ì–´ í„´ (ì…ë ¥ ëŒ€ê¸°)
             player.CurrentAp = player.AP;
             Update_ApSlider();
 
@@ -163,15 +163,18 @@ public class BattleManager : MonoBehaviour
 
             while (isInPlayerTurn == true)
             {
-                Debug.Log($"ÇöÀç AP : {player.CurrentAp} / {player.AP}");
+                if (ISPlayerNotInBattle == false)
+                {
+                    Debug.Log($"í˜„ì¬ AP : {player.CurrentAp} / {player.AP}");
 
-                TalkManager.Instance.ShowTemp("¹«¾ùÀ» ÇÒ °ÍÀÎ°¡?");
+                    TalkManager.Instance.ShowTemp("ë¬´ì—‡ì„ í•  ê²ƒì¸ê°€?");
 
-                buttonchoice.choicetrue = false;
-                buttonchoice.choicewhat = -1;
+                    buttonchoice.choicetrue = false;
+                    buttonchoice.choicewhat = -1;
 
-                buttonchoice.SpawnButtons("ÃÑ±â »ç°İ", "¸¶¹ı ½ÃÀü", "Çàµ¿ Á¾·á");
-                yield return new WaitUntil(() => buttonchoice.choicetrue);
+                    buttonchoice.SpawnButtons("ì´ê¸° ì‚¬ê²©", "ë§ˆë²• ì‹œì „", "í–‰ë™ ì¢…ë£Œ");
+                    yield return new WaitUntil(() => buttonchoice.choicetrue);
+                }
 
 
                 if (buttonchoice.choicewhat == 0)
@@ -180,13 +183,13 @@ public class BattleManager : MonoBehaviour
 
                     yield return StartCoroutine(ShotingPhase(player, Enemy_WithMarkers[TargetEnemy_Int].enemies));
 
-                }// ¿©±â¼­ ¸¶¹ı ºĞ±â************
+                }// ì—¬ê¸°ì„œ ë§ˆë²• ë¶„ê¸°************
                 else if (buttonchoice.choicewhat == 1)
                 {
                     buttonchoice.choicetrue = false;
                     buttonchoice.choicewhat = -1;
 
-                    yield return StartCoroutine(MagicPhase(player, enemies[0])); //µÚ¿¡ enemy ÀÎ¼ö´Â ¾Æ¹«°Å³ª ³ÖÀ½ ¤µ¤¡
+                    yield return StartCoroutine(MagicPhase(player, enemies[0])); //ë’¤ì— enemy ì¸ìˆ˜ëŠ” ì•„ë¬´ê±°ë‚˜ ë„£ìŒ ã……ã„±
                 }
                 else
                 {
@@ -194,29 +197,32 @@ public class BattleManager : MonoBehaviour
                 }
             }
 
-            for (int i = 0; i < 8; i++)
+            if (ISPlayerNotInBattle == false)
             {
-                if (Enemy_WithMarkers[i].enemies != null)
+                for (int i = 0; i < 8; i++)
                 {
-                    yield return StartCoroutine(EnemyShotYourFaceFuck(Enemy_WithMarkers[i].enemies, player, i));
-                }
-                else
-                {
-                    continue;
+                    if (Enemy_WithMarkers[i].enemies != null)
+                    {
+                        yield return StartCoroutine(EnemyShotYourFaceFuck(Enemy_WithMarkers[i].enemies, player, i));
+                    }
+                    else
+                    {
+                        continue;
+                    }
                 }
             }
-            // Á¶±â Á¾·á Ã¼Å©
+            // ì¡°ê¸° ì¢…ë£Œ ì²´í¬
             //if (battleEnd) break;
 
 
-            // 3) ½ÂÆĞ ÆÇÁ¤
-            if (/* ¸ğµÎ Ã³Ä¡ */ false) { Debug.Log("Victory"); ISPlayerNotInBattle = true; }
-            if (/* Àü¿ø »ç¸Á */ false) { Debug.Log("Defeat"); ISPlayerNotInBattle = true; }
+            // 3) ìŠ¹íŒ¨ íŒì •
+            if (/* ëª¨ë‘ ì²˜ì¹˜ */ false) { Debug.Log("Victory"); ISPlayerNotInBattle = true; }
+            if (/* ì „ì› ì‚¬ë§ */ false) { Debug.Log("Defeat"); ISPlayerNotInBattle = true; }
 
-            // ÅÛÆ÷ Á¶Àı(¼±ÅÃ)
+            // í…œí¬ ì¡°ì ˆ(ì„ íƒ)
             yield return null;
         }
-        Debug.Log("ÀüÅõ Á¾·á");
+        Debug.Log("ì „íˆ¬ ì¢…ë£Œ");
         running = false;
     }
 
@@ -237,17 +243,17 @@ public class BattleManager : MonoBehaviour
 
         if (IsFirstRun == true)
         {
-            // ´ë±â µé¾î°¡±â Àü ¹İµå½Ã ÃÊ±âÈ­
+            // ëŒ€ê¸° ë“¤ì–´ê°€ê¸° ì „ ë°˜ë“œì‹œ ì´ˆê¸°í™”
             buttonchoice.choicetrue = false;
             buttonchoice.choicewhat = -1;
 
-            // ¼±ÅÃÁö Ç¥½Ã(UI´Â ³×°¡ ¿¬°á)
+            // ì„ íƒì§€ í‘œì‹œ(UIëŠ” ë„¤ê°€ ì—°ê²°)
             TalkManager.Currenttalk = 2;
 
-            //buttonchoice.SpawnButtons("°Å¸® Á¼È÷±â", "°Å¸® À¯Áö", "°Å¸® ¹ú¸®±â", " Å×½ºÆ®1", "Å×½ºÆ®2", "Å×½ºÆ®3", "Å×½ºÆ®4");
+            //buttonchoice.SpawnButtons("ê±°ë¦¬ ì¢íˆê¸°", "ê±°ë¦¬ ìœ ì§€", "ê±°ë¦¬ ë²Œë¦¬ê¸°", " í…ŒìŠ¤íŠ¸1", "í…ŒìŠ¤íŠ¸2", "í…ŒìŠ¤íŠ¸3", "í…ŒìŠ¤íŠ¸4");
             buttonchoice.SpawnButtonsWithTooltips(
-                new List<string> { "°Å¸® Á¼È÷±â", "°Å¸® À¯Áö", "°Å¸® ¹ú¸®±â" },
-                new List<string> { "°Å¸®¸¦ Á¼Èù´Ù", "°Å¸®¸¦ À¯ÁöÇÑ´Ù", "°Å¸®¸¦ ¹ú¸°´Ù" });
+                new List<string> { "ê±°ë¦¬ ì¢íˆê¸°", "ê±°ë¦¬ ìœ ì§€", "ê±°ë¦¬ ë²Œë¦¬ê¸°" },
+                new List<string> { "ê±°ë¦¬ë¥¼ ì¢íŒë‹¤", "ê±°ë¦¬ë¥¼ ìœ ì§€í•œë‹¤", "ê±°ë¦¬ë¥¼ ë²Œë¦°ë‹¤" });
 
             yield return new WaitUntil(() => buttonchoice.choicetrue);
 
@@ -258,20 +264,20 @@ public class BattleManager : MonoBehaviour
 
 
 
-        // ºĞ±â Ã³¸®
-        switch (cachedMoveChoice) //°Å¸®Á¶Àı ½ÃÄö½º
+        // ë¶„ê¸° ì²˜ë¦¬
+        switch (cachedMoveChoice) //ê±°ë¦¬ì¡°ì ˆ ì‹œí€€ìŠ¤
         {
             case 0:
 
-                Debug.Log("°Å¸® Á¼È÷±â!");
+                Debug.Log("ê±°ë¦¬ ì¢íˆê¸°!");
 
                 yield return StartCoroutine(DoRun(ShouldBePlayer, ShouldBeEnemy, 0));
 
                 break;
 
-            case 1: //°Å¸® Á¼È÷±â
+            case 1: //ê±°ë¦¬ ì¢íˆê¸°
 
-                Debug.Log("°Å¸® À¯Áö!");
+                Debug.Log("ê±°ë¦¬ ìœ ì§€!");
 
                 yield return StartCoroutine(DoRun(ShouldBePlayer, ShouldBeEnemy, 1));
 
@@ -279,14 +285,14 @@ public class BattleManager : MonoBehaviour
 
             default:
 
-                Debug.Log("°Å¸® ¹ú¸®±â!");
+                Debug.Log("ê±°ë¦¬ ë²Œë¦¬ê¸°!");
 
                 yield return StartCoroutine(DoRun(ShouldBePlayer, ShouldBeEnemy, 2));
 
                 break;
         }
 
-        // ´ÙÀ½ ÅÏ ´ëºñ ÃÊ±âÈ­(¼±ÅÃ)
+        // ë‹¤ìŒ í„´ ëŒ€ë¹„ ì´ˆê¸°í™”(ì„ íƒ)
     }
 
     public IEnumerator ShotingPhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy)
@@ -295,24 +301,24 @@ public class BattleManager : MonoBehaviour
 
         while (isPlayerInBattle == true)
         {
-            // ´ë±â µé¾î°¡±â Àü ¹İµå½Ã ÃÊ±âÈ­
+            // ëŒ€ê¸° ë“¤ì–´ê°€ê¸° ì „ ë°˜ë“œì‹œ ì´ˆê¸°í™”
             buttonchoice.choicetrue = false;
             buttonchoice.choicewhat = -1;
 
-            // ¼±ÅÃÁö Ç¥½Ã(UI´Â ³×°¡ ¿¬°á)
+            // ì„ íƒì§€ í‘œì‹œ(UIëŠ” ë„¤ê°€ ì—°ê²°)
             if (ShouldBeEnemy.CurrentHp <= 0)
             {
-                yield return ShowThenWait("´ë»óÀÌ ¾ø´Ù! ´ë»óÀ» ´Ù½Ã ÁöÁ¤ÇØ¾ß ÇÑ´Ù.");
+                yield return ShowThenWait("ëŒ€ìƒì´ ì—†ë‹¤! ëŒ€ìƒì„ ë‹¤ì‹œ ì§€ì •í•´ì•¼ í•œë‹¤.");
                 yield return StartCoroutine(ShotTargetEnemySelect());
                 ShouldBeEnemy = Enemy_WithMarkers[TargetEnemy_Int].enemies;
             }
 
             TalkManager.Currenttalk = 2;
-            buttonchoice.SpawnButtons("´ë»ó ÀçÁöÁ¤", "Ç¥ÁØ »ç°İ", "Á¶ÁØ »ç°İ", "Á¤¹Ğ Á¶ÁØ »ç°İ", "¿¬¼Ó »ç°İ", "Á¦¾Ğ »ç°İ", "Çàµ¿ Á¾·á");
+            buttonchoice.SpawnButtons("ëŒ€ìƒ ì¬ì§€ì •", "í‘œì¤€ ì‚¬ê²©", "ì¡°ì¤€ ì‚¬ê²©", "ì •ë°€ ì¡°ì¤€ ì‚¬ê²©", "ì—°ì† ì‚¬ê²©", "ì œì•• ì‚¬ê²©", "í–‰ë™ ì¢…ë£Œ");
 
             yield return new WaitUntil(() => buttonchoice.choicetrue);
 
-            switch (buttonchoice.choicewhat) //»ç°İ ½ÃÄö½º
+            switch (buttonchoice.choicewhat) //ì‚¬ê²© ì‹œí€€ìŠ¤
             {
                 case 0:
 
@@ -334,14 +340,14 @@ public class BattleManager : MonoBehaviour
                     }
                     else
                     {
-                        yield return ShowThenWait($"Çàµ¿·ÂÀÌ ºÎÁ·ÇÏ´Ù! ´ç½ÅÀÇ Çàµ¿·Â = {player.CurrentAp}");
+                        yield return ShowThenWait($"í–‰ë™ë ¥ì´ ë¶€ì¡±í•˜ë‹¤! ë‹¹ì‹ ì˜ í–‰ë™ë ¥ = {player.CurrentAp}");
                     }
 
                     break;
 
                 case 6:
 
-                    yield return ShowThenWait("´ç½ÅÀº Çàµ¿À» ³¡¸¶ÃÆ´Ù.");
+                    yield return ShowThenWait("ë‹¹ì‹ ì€ í–‰ë™ì„ ëë§ˆì³¤ë‹¤.");
                     isPlayerInBattle = false;
 
                     break;
@@ -349,6 +355,10 @@ public class BattleManager : MonoBehaviour
 
             
             DeathOfEnemy();
+            if(ISPlayerNotInBattle == true)
+            {
+                yield break;
+            }
         }
 
         Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.white;
@@ -358,7 +368,7 @@ public class BattleManager : MonoBehaviour
     public IEnumerator DoRun(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy, int button)
     {
         const int DELTA_ENEMY_KEEP = -1;
-        const int DELTA_CONTEST_RETREAT_OR_ADVANCE = 0; // ¹ú¸®±â/Á¼È÷±â Ãæµ¹
+        const int DELTA_CONTEST_RETREAT_OR_ADVANCE = 0; // ë²Œë¦¬ê¸°/ì¢íˆê¸° ì¶©ëŒ
         const int DELTA_PLAYER_KEEP = 1;
 
         int MoveCases = -1;
@@ -368,50 +378,50 @@ public class BattleManager : MonoBehaviour
 
         switch (button)
         {
-            case 0: //°Å¸® Á¼È÷±â ¼±ÅÃ
+            case 0: //ê±°ë¦¬ ì¢íˆê¸° ì„ íƒ
 
-                yield return ShowThenWait($"{ShouldBePlayer.Name}Àº °Å¸®¸¦ Á¼È÷±â·ÎÇß´Ù.");
+                yield return ShowThenWait($"{ShouldBePlayer.Name}ì€ ê±°ë¦¬ë¥¼ ì¢íˆê¸°ë¡œí–ˆë‹¤.");
 
-                switch (Enemyintent /*Àû ai*/ )
+                switch (Enemyintent /*ì  ai*/ )
                 {
-                    case MoveIntent.Advance: //»ó´ëµµ °Å¸®¸¦ Á¼È÷±â ¼±ÅÃ
+                    case MoveIntent.Advance: //ìƒëŒ€ë„ ê±°ë¦¬ë¥¼ ì¢íˆê¸° ì„ íƒ
 
                         MoveCases = 0; //pAeA
 
-                        yield return ShowThenWait("»ó´ë ¿ª½Ã °Å¸®¸¦ Á¼È÷°í ÀÖ´Ù.");
+                        yield return ShowThenWait("ìƒëŒ€ ì—­ì‹œ ê±°ë¦¬ë¥¼ ì¢íˆê³  ìˆë‹¤.");
 
                         break;
 
-                    case MoveIntent.Keep: //»ó´ë´Â °Å¸® À¯Áö
+                    case MoveIntent.Keep: //ìƒëŒ€ëŠ” ê±°ë¦¬ ìœ ì§€
 
-                        if (VSmeANDyouSPEED(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP) == true) //»ó´ë °Å¸® À¯Áö ½ÇÆĞ
+                        if (VSmeANDyouSPEED(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP) == true) //ìƒëŒ€ ê±°ë¦¬ ìœ ì§€ ì‹¤íŒ¨
                         {
                             MoveCases = 3; //pA
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}Àº(´Â) °Å¸®¸¦ À¯ÁöÇÏ·ÁÇßÁö¸¸ ½ÇÆĞÇß´Ù. È®·ü:{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}ì€(ëŠ”) ê±°ë¦¬ë¥¼ ìœ ì§€í•˜ë ¤í–ˆì§€ë§Œ ì‹¤íŒ¨í–ˆë‹¤. í™•ë¥ :{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
                         }
-                        else //»ó´ë´Â °Å¸® ¼º°ø
+                        else //ìƒëŒ€ëŠ” ê±°ë¦¬ ì„±ê³µ
                         {
                             MoveCases = 1; //pKeK
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}Àº(´Â) °Å¸®¸¦ À¯ÁöÇß´Ù! È®·ü:{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}ì€(ëŠ”) ê±°ë¦¬ë¥¼ ìœ ì§€í–ˆë‹¤! í™•ë¥ :{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
                         }
 
                         break;
 
-                    case MoveIntent.Retreat: //»ó´ë´Â °Å¸® ¹ú¸®±â
+                    case MoveIntent.Retreat: //ìƒëŒ€ëŠ” ê±°ë¦¬ ë²Œë¦¬ê¸°
 
-                        if (VSmeANDyouSPEED(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE) == true) //»ó´ë °Å¸® ¹ú¸®±â ½ÇÆĞ
+                        if (VSmeANDyouSPEED(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE) == true) //ìƒëŒ€ ê±°ë¦¬ ë²Œë¦¬ê¸° ì‹¤íŒ¨
                         {
                             MoveCases = 3; //pA
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}Àº(´Â) °Å¸®¸¦ ¹ú¸®·ÁÇßÁö¸¸ ½ÇÆĞÇß´Ù. È®·ü:{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}ì€(ëŠ”) ê±°ë¦¬ë¥¼ ë²Œë¦¬ë ¤í–ˆì§€ë§Œ ì‹¤íŒ¨í–ˆë‹¤. í™•ë¥ :{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
                         }
-                        else //»ó´ë °Å¸® ¹ú¸®±â ¼º°ø
+                        else //ìƒëŒ€ ê±°ë¦¬ ë²Œë¦¬ê¸° ì„±ê³µ
                         {
                             MoveCases = 6; //eR
 
-                            yield return ShowThenWait($"´ç½ÅÀº °Å¸®¸¦ Á¼È÷´Âµ¥ ½ÇÆĞÇß°í, {ShouldBeEnemy.Name}Àº(´Â) °Å¸®¸¦ ¹ú·È´Ù! È®·ü:{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
+                            yield return ShowThenWait($"ë‹¹ì‹ ì€ ê±°ë¦¬ë¥¼ ì¢íˆëŠ”ë° ì‹¤íŒ¨í–ˆê³ , {ShouldBeEnemy.Name}ì€(ëŠ”) ê±°ë¦¬ë¥¼ ë²Œë ¸ë‹¤! í™•ë¥ :{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
                         }
 
                         break;
@@ -419,53 +429,53 @@ public class BattleManager : MonoBehaviour
 
                 break;
 
-            case 1: //°Å¸® À¯Áö ¼±ÅÃ
+            case 1: //ê±°ë¦¬ ìœ ì§€ ì„ íƒ
 
-                yield return ShowThenWait($"{ShouldBePlayer.Name}Àº °Å¸®¸¦ À¯ÁöÇÏ±â·ÎÇß´Ù.");
+                yield return ShowThenWait($"{ShouldBePlayer.Name}ì€ ê±°ë¦¬ë¥¼ ìœ ì§€í•˜ê¸°ë¡œí–ˆë‹¤.");
 
-                switch (Enemyintent /*Àû ai*/ )
+                switch (Enemyintent /*ì  ai*/ )
                 {
-                    case MoveIntent.Advance: // ³ª´Â À¯Áö, »ó´ë´Â °Å¸®¸¦ Á¼È÷±â ¼±ÅÃ
+                    case MoveIntent.Advance: // ë‚˜ëŠ” ìœ ì§€, ìƒëŒ€ëŠ” ê±°ë¦¬ë¥¼ ì¢íˆê¸° ì„ íƒ
 
                         if (VSmeANDyouSPEED(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP) == true)
-                        { // »ó´ë °Å¸® Á¼È÷±â ½ÇÆĞ
+                        { // ìƒëŒ€ ê±°ë¦¬ ì¢íˆê¸° ì‹¤íŒ¨
                             MoveCases = 1; //pKeK
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}Àº(´Â) °Å¸®¸¦ Á¼È÷·Á ÇßÀ¸³ª ½ÇÆĞÇß´Ù. È®·ü : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}ì€(ëŠ”) ê±°ë¦¬ë¥¼ ì¢íˆë ¤ í–ˆìœ¼ë‚˜ ì‹¤íŒ¨í–ˆë‹¤. í™•ë¥  : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
                         }
-                        else // »ó´ë °Å¸® Á¼È÷±â ¼º°ø
+                        else // ìƒëŒ€ ê±°ë¦¬ ì¢íˆê¸° ì„±ê³µ
                         {
                             MoveCases = 5; //eA
 
-                            yield return ShowThenWait($"°Å¸® À¯Áö ½ÇÆĞ! »ó´ë´Â °Å¸®¸¦ Á¼Çû´Ù! È®·ü : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
+                            yield return ShowThenWait($"ê±°ë¦¬ ìœ ì§€ ì‹¤íŒ¨! ìƒëŒ€ëŠ” ê±°ë¦¬ë¥¼ ì¢í˜”ë‹¤! í™•ë¥  : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
                         }
 
-                        yield return ShowThenWait($"{ShouldBePlayer.Name}°ú {ShouldBeEnemy.Name}ÀÇ °Å¸®´Â {ShouldBeEnemy.Distance}(ÀÌ)°¡ µÇ¾ú´Ù!");
+                        yield return ShowThenWait($"{ShouldBePlayer.Name}ê³¼ {ShouldBeEnemy.Name}ì˜ ê±°ë¦¬ëŠ” {ShouldBeEnemy.Distance}(ì´)ê°€ ë˜ì—ˆë‹¤!");
 
                         break;
 
-                    case MoveIntent.Keep: //³ª¿Í »ó´ë °Å¸® À¯Áö
+                    case MoveIntent.Keep: //ë‚˜ì™€ ìƒëŒ€ ê±°ë¦¬ ìœ ì§€
 
                         MoveCases = 1; //pKeK
 
-                        yield return ShowThenWait($"{ShouldBeEnemy.Name}¿ª½Ã °Å¸®¸¦ À¯ÁöÁßÀÌ´Ù");
+                        yield return ShowThenWait($"{ShouldBeEnemy.Name}ì—­ì‹œ ê±°ë¦¬ë¥¼ ìœ ì§€ì¤‘ì´ë‹¤");
 
                         break;
 
-                    case MoveIntent.Retreat: //³ª´Â À¯Áö, »ó´ë´Â °Å¸® ¹ú¸®±â
+                    case MoveIntent.Retreat: //ë‚˜ëŠ” ìœ ì§€, ìƒëŒ€ëŠ” ê±°ë¦¬ ë²Œë¦¬ê¸°
 
-                        if (VSmeANDyouSPEED(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP) == true) //»ó´ë °Å¸® ¹ú¸®±â ½ÇÆĞ => À¯Áö
+                        if (VSmeANDyouSPEED(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP) == true) //ìƒëŒ€ ê±°ë¦¬ ë²Œë¦¬ê¸° ì‹¤íŒ¨ => ìœ ì§€
                         {
                             MoveCases = 1; //pKeK
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}Àº(´Â) °Å¸®¸¦ ¹ú¸®·ÁÇßÁö¸¸ ½ÇÆĞÇß´Ù. È®·ü : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}ì€(ëŠ”) ê±°ë¦¬ë¥¼ ë²Œë¦¬ë ¤í–ˆì§€ë§Œ ì‹¤íŒ¨í–ˆë‹¤. í™•ë¥  : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
 
                         }
-                        else   //»ó´ë °Å¸® ¹ú¸®±â ¼º°ø
+                        else   //ìƒëŒ€ ê±°ë¦¬ ë²Œë¦¬ê¸° ì„±ê³µ
                         {
                             MoveCases = 6; //eR 
 
-                            yield return ShowThenWait($"°Å¸® À¯Áö ½ÇÆĞ! {ShouldBeEnemy.Name}Àº(´Â) °Å¸®¸¦ ¹ú·È´Ù! È®·ü : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
+                            yield return ShowThenWait($"ê±°ë¦¬ ìœ ì§€ ì‹¤íŒ¨! {ShouldBeEnemy.Name}ì€(ëŠ”) ê±°ë¦¬ë¥¼ ë²Œë ¸ë‹¤! í™•ë¥  : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
 
                         }
 
@@ -474,51 +484,51 @@ public class BattleManager : MonoBehaviour
 
                 break;
 
-            case 2: //°Å¸® ¹ú¸®±â ¼±ÅÃ
+            case 2: //ê±°ë¦¬ ë²Œë¦¬ê¸° ì„ íƒ
 
-                yield return ShowThenWait($"{ShouldBePlayer.Name}Àº °Å¸®¸¦ ¹ú¸®±â·ÎÇß´Ù.");
+                yield return ShowThenWait($"{ShouldBePlayer.Name}ì€ ê±°ë¦¬ë¥¼ ë²Œë¦¬ê¸°ë¡œí–ˆë‹¤.");
 
-                switch (Enemyintent /*Àû ai*/ )
+                switch (Enemyintent /*ì  ai*/ )
                 {
-                    case MoveIntent.Advance: //³ª´Â °Å¸® ¹ú¸®±â, »ó´ë´Â °Å¸®¸¦ Á¼È÷±â ¼±ÅÃ
+                    case MoveIntent.Advance: //ë‚˜ëŠ” ê±°ë¦¬ ë²Œë¦¬ê¸°, ìƒëŒ€ëŠ” ê±°ë¦¬ë¥¼ ì¢íˆê¸° ì„ íƒ
 
-                        if (VSmeANDyouSPEED(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE) == true) //»ó´ë °Å¸® Á¼È÷±â ½ÇÆĞ, ³ª °Å¸® ¹ú¸²
+                        if (VSmeANDyouSPEED(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE) == true) //ìƒëŒ€ ê±°ë¦¬ ì¢íˆê¸° ì‹¤íŒ¨, ë‚˜ ê±°ë¦¬ ë²Œë¦¼
                         {
                             MoveCases = 4; //pR
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}Àº(´Â) °Å¸®¸¦ Á¼È÷·ÁÇßÁö¸¸ ½ÇÆĞÇß´Ù. È®·ü : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}ì€(ëŠ”) ê±°ë¦¬ë¥¼ ì¢íˆë ¤í–ˆì§€ë§Œ ì‹¤íŒ¨í–ˆë‹¤. í™•ë¥  : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
                         }
-                        else //»ó´ë °Å¸® Á¼È÷±â ¼º°ø
+                        else //ìƒëŒ€ ê±°ë¦¬ ì¢íˆê¸° ì„±ê³µ
                         {
                             MoveCases = 5; //eA
 
-                            yield return ShowThenWait($"°Å¸® ¹ú¸®±â ½ÇÆĞ! {ShouldBeEnemy.Name}Àº(´Â) °Å¸®¸¦ Á¼Çû´Ù! È®·ü : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
+                            yield return ShowThenWait($"ê±°ë¦¬ ë²Œë¦¬ê¸° ì‹¤íŒ¨! {ShouldBeEnemy.Name}ì€(ëŠ”) ê±°ë¦¬ë¥¼ ì¢í˜”ë‹¤! í™•ë¥  : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
                         }
 
                         break;
 
-                    case MoveIntent.Keep: //»ó´ë´Â °Å¸® À¯Áö
+                    case MoveIntent.Keep: //ìƒëŒ€ëŠ” ê±°ë¦¬ ìœ ì§€
 
-                        if (VSmeANDyouSPEED(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP) == true) //»ó´ë °Å¸® À¯Áö ½ÇÆĞ, ³ª °Å¸® Á¼Èû
+                        if (VSmeANDyouSPEED(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP) == true) //ìƒëŒ€ ê±°ë¦¬ ìœ ì§€ ì‹¤íŒ¨, ë‚˜ ê±°ë¦¬ ì¢í˜
                         {
                             MoveCases = 3; // pA
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}Àº(´Â) °Å¸®¸¦ À¯ÁöÇÏ·ÁÇßÁö¸¸ ½ÇÆĞÇß´Ù. È®·ü : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}ì€(ëŠ”) ê±°ë¦¬ë¥¼ ìœ ì§€í•˜ë ¤í–ˆì§€ë§Œ ì‹¤íŒ¨í–ˆë‹¤. í™•ë¥  : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
                         }
-                        else //»ó´ë °Å¸® À¯Áö
+                        else //ìƒëŒ€ ê±°ë¦¬ ìœ ì§€
                         {
                             MoveCases = 1; //pKeK
 
-                            yield return ShowThenWait($"°Å¸® ¹ú¸®±â ½ÇÆĞ! {ShouldBeEnemy.Name}Àº(´Â) °Å¸®¸¦ À¯ÁöÇß´Ù! È®·ü : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
+                            yield return ShowThenWait($"ê±°ë¦¬ ë²Œë¦¬ê¸° ì‹¤íŒ¨! {ShouldBeEnemy.Name}ì€(ëŠ”) ê±°ë¦¬ë¥¼ ìœ ì§€í–ˆë‹¤! í™•ë¥  : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
                         }
 
                         break;
 
-                    case MoveIntent.Retreat: //»ó´ë¿Í ³ª °Å¸® ¹ú¸®±â
+                    case MoveIntent.Retreat: //ìƒëŒ€ì™€ ë‚˜ ê±°ë¦¬ ë²Œë¦¬ê¸°
 
                         MoveCases = 2; //pReR
 
-                        yield return ShowThenWait($"{ShouldBeEnemy.Name} ¿ª½Ã °Å¸®¸¦ ¹ú·È´Ù!");
+                        yield return ShowThenWait($"{ShouldBeEnemy.Name} ì—­ì‹œ ê±°ë¦¬ë¥¼ ë²Œë ¸ë‹¤!");
 
                         break;
                 }
@@ -536,7 +546,7 @@ public class BattleManager : MonoBehaviour
 
         UpdateMarkerForEnemy0(ShouldBeEnemy.Distance, Enemy_WithMarkers[CurrentMovingEnemy_int].marker, Enemy_WithMarkers[CurrentMovingEnemy_int].endpoint);
 
-        TalkManager.Instance.ShowTemp($"{Mathf.Abs(BeforeDistance - ShouldBeEnemy.Distance)}¸¸Å­ ÀÌµ¿Çß´Ù. {ShouldBePlayer.Name}°ú {ShouldBeEnemy.Name}ÀÇ °Å¸®´Â {ShouldBeEnemy.Distance}(ÀÌ)°¡ µÇ¾ú´Ù!");
+        TalkManager.Instance.ShowTemp($"{Mathf.Abs(BeforeDistance - ShouldBeEnemy.Distance)}ë§Œí¼ ì´ë™í–ˆë‹¤. {ShouldBePlayer.Name}ê³¼ {ShouldBeEnemy.Name}ì˜ ê±°ë¦¬ëŠ” {ShouldBeEnemy.Distance}(ì´)ê°€ ë˜ì—ˆë‹¤!");
         yield return StartCoroutine(WaitForSpace());
     }
 
@@ -563,46 +573,46 @@ public class BattleManager : MonoBehaviour
     public float CalcDistance(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy, MoveCaseNine moveCaseNine)
     {
         float t = Mathf.InverseLerp(gameMin, gameMax, ShouldBeEnemy.Distance);
-        t = Mathf.Pow(t, 0.5f); // µŞ ÀÎÀÚ·Î °î¼± ÈÖ±â (°¨¸¶ ½ºÄÉÀÏ)
-        float multiplier = Mathf.Lerp(1f, 2f, t); //ÃÖÁ¾ °¨¸¶ º¸Á¤Ä¡ 1¹è¿¡¼­ ÃÖÁ¾ 2¹è±îÁö º¸Á¤ÇÑ´Ù´Â ¶æ
+        t = Mathf.Pow(t, 0.5f); // ë’· ì¸ìë¡œ ê³¡ì„  íœ˜ê¸° (ê°ë§ˆ ìŠ¤ì¼€ì¼)
+        float multiplier = Mathf.Lerp(1f, 2f, t); //ìµœì¢… ê°ë§ˆ ë³´ì •ì¹˜ 1ë°°ì—ì„œ ìµœì¢… 2ë°°ê¹Œì§€ ë³´ì •í•œë‹¤ëŠ” ëœ»
 
         switch (moveCaseNine)
         {
-            case MoveCaseNine.pAeA: //´õºí °Å¸® Á¼Èû
+            case MoveCaseNine.pAeA: //ë”ë¸” ê±°ë¦¬ ì¢í˜
 
                 ShouldBeEnemy.Distance -= (ShouldBePlayer.Speed + ShouldBeEnemy.Speed) * multiplier;
 
                 break;
 
-            case MoveCaseNine.pKeK: //°Å¸® À¯Áö
+            case MoveCaseNine.pKeK: //ê±°ë¦¬ ìœ ì§€
 
                 break;
 
-            case MoveCaseNine.pReR: //´õºí °Å¸® ¹ú¸²
+            case MoveCaseNine.pReR: //ë”ë¸” ê±°ë¦¬ ë²Œë¦¼
 
                 ShouldBeEnemy.Distance += (ShouldBePlayer.Speed + ShouldBeEnemy.Speed) * multiplier;
 
                 break;
 
-            case MoveCaseNine.pA: //(³»°¡) °Å¸® Á¼Èû
+            case MoveCaseNine.pA: //(ë‚´ê°€) ê±°ë¦¬ ì¢í˜
 
                 ShouldBeEnemy.Distance -= ShouldBePlayer.Speed * multiplier;
 
                 break;
 
-            case MoveCaseNine.pR: //(³»°¡) °Å¸® ¹ú¸²
+            case MoveCaseNine.pR: //(ë‚´ê°€) ê±°ë¦¬ ë²Œë¦¼
 
                 ShouldBeEnemy.Distance += ShouldBePlayer.Speed * multiplier;
 
                 break;
 
-            case MoveCaseNine.eA: //(»ó´ë°¡) °Å¸® Á¼Èû
+            case MoveCaseNine.eA: //(ìƒëŒ€ê°€) ê±°ë¦¬ ì¢í˜
 
                 ShouldBeEnemy.Distance -= ShouldBeEnemy.Speed * multiplier;
 
                 break;
 
-            case MoveCaseNine.eR: //(»ó´ë°¡) °Å¸® ¹ú¸²
+            case MoveCaseNine.eR: //(ìƒëŒ€ê°€) ê±°ë¦¬ ë²Œë¦¼
 
                 ShouldBeEnemy.Distance += ShouldBeEnemy.Speed * multiplier;
 
@@ -627,7 +637,7 @@ public class BattleManager : MonoBehaviour
 
     public float PercFactor(ICharacter attacker)
     {
-        return 1f + (attacker.Perception - 10) * 0.04f; // Áö°¢ÀÌ 10ÀÏ ¶§ 1.0
+        return 1f + (attacker.Perception - 10) * 0.04f; // ì§€ê°ì´ 10ì¼ ë•Œ 1.0
     }
 
     public void ShotDamageMethod(ICharacter attacker, ICharacter defender)
@@ -645,7 +655,7 @@ public class BattleManager : MonoBehaviour
         buttonValueSelector.choiceButtonTrue = false;
         buttonValueSelector.SetBindingsInteractable(true);
 
-        TalkManager.Instance.ShowTemp("´©±¸¸¦?");
+        TalkManager.Instance.ShowTemp("ëˆ„êµ¬ë¥¼?");
 
         yield return new WaitUntil(() => buttonValueSelector.choiceButtonTrue);
 
@@ -674,33 +684,37 @@ public class BattleManager : MonoBehaviour
 
                 ShotDamageMethod(attacker, defender);
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
-                TalkManager.Instance.ShowTemp($"{i}¹ßÂ° : ¸íÁß! {attacker.Name}Àº(´Â) {defender.Name}¿¡°Ô {calcdamageX} µ¥¹ÌÁö¸¦ ÁÖ¾ú´Ù! È®·ü : {ShotChance}");
+                TalkManager.Instance.ShowTemp($"{i}ë°œì§¸ : ëª…ì¤‘! {attacker.Name}ì€(ëŠ”) {defender.Name}ì—ê²Œ {calcdamageX} ë°ë¯¸ì§€ë¥¼ ì£¼ì—ˆë‹¤! í™•ë¥  : {ShotChance}");
                 FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
                 Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.red;
                 Enemy_WithMarkers[TargetEnemy_Int].slider.value = (float)Enemy_WithMarkers[TargetEnemy_Int].enemies.CurrentHp / Enemy_WithMarkers[TargetEnemy_Int].enemies.HP;
 
-                Debug.Log($"{i}¹ßÂ° : ¸íÁß!");
+                Debug.Log($"{i}ë°œì§¸ : ëª…ì¤‘!");
             }
             else
             {
-                TalkManager.Instance.ShowTemp($"{i}¹ßÂ° : °¨³ªºø! {attacker.Name}ÀÇ °ø°İÀº ºø³ª°¬´Ù! È®·ü : {ShotChance}");
+                TalkManager.Instance.ShowTemp($"{i}ë°œì§¸ : ê°ë‚˜ë¹—! {attacker.Name}ì˜ ê³µê²©ì€ ë¹—ë‚˜ê°”ë‹¤! í™•ë¥  : {ShotChance}");
                 FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, false);
 
-                Debug.Log($"{i}¹ßÂ° : °¨³ªºø!");
+                Debug.Log($"{i}ë°œì§¸ : ê°ë‚˜ë¹—!");
             }
 
             yield return new WaitForSeconds(ShotRateSpeed);
             Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.blue;
         }
 
-        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}¹ß Áß {HowManyShot}¹ß ¸íÁß! È®·ü : {ShotChance} µ¥¹ÌÁö : {calcdamageX * HowManyShot} {defender.Name}ÀÇ ³²Àº HP: {defender.CurrentHp}");
+        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}ë°œ ì¤‘ {HowManyShot}ë°œ ëª…ì¤‘! í™•ë¥  : {ShotChance} ë°ë¯¸ì§€ : {calcdamageX * HowManyShot} {defender.Name}ì˜ ë‚¨ì€ HP: {defender.CurrentHp}");
 
         if (defender.CurrentHp <= 0)
         {
-            yield return ShowThenWait($"{defender.Name}Àº Á×À½¿¡ ÀÌ¸£´Â ÇÇÇØ¸¦ ÀÔ¾ú´Ù!");
+            yield return ShowThenWait($"{defender.Name}ì€ ì£½ìŒì— ì´ë¥´ëŠ” í”¼í•´ë¥¼ ì…ì—ˆë‹¤!");
         }
         DeathOfEnemy();
         Enemy_WithMakers_RESTART(enemies);
+        if (ISPlayerNotInBattle == true)
+        {
+            yield break;
+        }
     }
 
     public IEnumerator EnemyShotYourFaceFuck(ICharacter attacker, ICharacter defender, int currentEnemy)
@@ -724,36 +738,36 @@ public class BattleManager : MonoBehaviour
 
                 ShotDamageMethod(attacker, defender);
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
-                TalkManager.Instance.ShowTemp($"{i}¹ßÂ° : ¸íÁß! {attacker.Name}Àº(´Â) {defender.Name}¿¡°Ô {calcdamageX} µ¥¹ÌÁö¸¦ ÁÖ¾ú´Ù! È®·ü : {ShotChance}");
+                TalkManager.Instance.ShowTemp($"{i}ë°œì§¸ : ëª…ì¤‘! {attacker.Name}ì€(ëŠ”) {defender.Name}ì—ê²Œ {calcdamageX} ë°ë¯¸ì§€ë¥¼ ì£¼ì—ˆë‹¤! í™•ë¥  : {ShotChance}");
                 FireBullet(Enemy_WithMarkers[currentEnemy].marker, minPoint, true);
                 minPoint.gameObject.GetComponent<Image>().color = Color.red;
                 PlayerSlider.value = (float)player.CurrentHp / player.HP;
 
-                Debug.Log($"{i}¹ßÂ° : ¸íÁß!");
+                Debug.Log($"{i}ë°œì§¸ : ëª…ì¤‘!");
             }
             else
             {
-                TalkManager.Instance.ShowTemp($"{i}¹ßÂ° : °¨³ªºø! {attacker.Name}ÀÇ °ø°İÀº ºø³ª°¬´Ù! È®·ü : {ShotChance}");
+                TalkManager.Instance.ShowTemp($"{i}ë°œì§¸ : ê°ë‚˜ë¹—! {attacker.Name}ì˜ ê³µê²©ì€ ë¹—ë‚˜ê°”ë‹¤! í™•ë¥  : {ShotChance}");
                 FireBullet(Enemy_WithMarkers[currentEnemy].marker, minPoint, false);
 
-                Debug.Log($"{i}¹ßÂ° : °¨³ªºø!");
+                Debug.Log($"{i}ë°œì§¸ : ê°ë‚˜ë¹—!");
             }
 
             yield return new WaitForSeconds(ShotRateSpeed);
             minPoint.gameObject.GetComponent<Image>().color = Color.white;
         }
 
-        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}¹ß Áß {HowManyShot}¹ß ¸íÁß! È®·ü : {ShotChance} µ¥¹ÌÁö : {calcdamageX * HowManyShot} {defender.Name}ÀÇ ³²Àº HP: {defender.CurrentHp}");
+        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}ë°œ ì¤‘ {HowManyShot}ë°œ ëª…ì¤‘! í™•ë¥  : {ShotChance} ë°ë¯¸ì§€ : {calcdamageX * HowManyShot} {defender.Name}ì˜ ë‚¨ì€ HP: {defender.CurrentHp}");
 
     }
 
     public IEnumerator MleePhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy, int ShouldBeEnemy_int)
     {
-        // ´ë±â µé¾î°¡±â Àü ¹İµå½Ã ÃÊ±âÈ­
+        // ëŒ€ê¸° ë“¤ì–´ê°€ê¸° ì „ ë°˜ë“œì‹œ ì´ˆê¸°í™”
         buttonchoice.choicetrue = false;
         buttonchoice.choicewhat = -1;
 
-        //ÃÖÁ¾ ¼±ÅÃÁö
+        //ìµœì¢… ì„ íƒì§€
         List<IMlee> PlayerSelectedMleeList = new();
         List<IMlee> EnemySelectedMleeList = new();
 
@@ -767,15 +781,15 @@ public class BattleManager : MonoBehaviour
         marker7.gameObject.SetActive(false);
         minPoint.gameObject.SetActive(false);
 
-        // ¼±ÅÃÁö Ç¥½Ã(UI´Â ³×°¡ ¿¬°á)
+        // ì„ íƒì§€ í‘œì‹œ(UIëŠ” ë„¤ê°€ ì—°ê²°)
 
-        TalkManager.Instance.ShowTemp($"{ShouldBeEnemy.Name}Àº(´Â) ´ç½Å ¹Ù·Î ¾Õ¿¡ ÀÖ´Ù! ¹«¾ùÀ» ÇÏÁö?");
+        TalkManager.Instance.ShowTemp($"{ShouldBeEnemy.Name}ì€(ëŠ”) ë‹¹ì‹  ë°”ë¡œ ì•ì— ìˆë‹¤! ë¬´ì—‡ì„ í•˜ì§€?");
 
         List<IMlee> RandomMleePopOut = new List<IMlee>();
 
         for (int A = 0; A < 4; A++)
         {
-            RandomMleePopOut.Add(RandomMleeByWeight(ShouldBePlayer.ActiveSkills)); //°¡ÁßÄ¡¿¡ µû¶ó ¾Ë°íÀÖ´Â ½ºÅ³ Áß ÇÏ³ª »ÌÀ½
+            RandomMleePopOut.Add(RandomMleeByWeight(ShouldBePlayer.ActiveSkills)); //ê°€ì¤‘ì¹˜ì— ë”°ë¼ ì•Œê³ ìˆëŠ” ìŠ¤í‚¬ ì¤‘ í•˜ë‚˜ ë½‘ìŒ
         }
 
         List<string> MleeAtkSelect = new();
@@ -785,7 +799,7 @@ public class BattleManager : MonoBehaviour
             MleeAtkSelect.Add(RandomMleePopOut[B].Name);
         }
 
-        //°ø°İ ¼±ÅÃ ½Ã°£
+        //ê³µê²© ì„ íƒ ì‹œê°„
         for (int i = 0; i < 2; i++)
         {
             buttonchoice.choicetrue = false;
@@ -797,7 +811,7 @@ public class BattleManager : MonoBehaviour
 
             if (i == 1)
             {
-                TalkManager.Instance.ShowTemp($"{ShouldBeEnemy.Name}Àº(´Â) ´ç½Å ¹Ù·Î ¾Õ¿¡ ÀÖ´Ù! ¹«¾ùÀ» ÇÏÁö?");
+                TalkManager.Instance.ShowTemp($"{ShouldBeEnemy.Name}ì€(ëŠ”) ë‹¹ì‹  ë°”ë¡œ ì•ì— ìˆë‹¤! ë¬´ì—‡ì„ í•˜ì§€?");
             }
 
             PlayerSelectedMleeList.Add(RandomMleePopOut[buttonchoice.choicewhat]);
@@ -819,7 +833,7 @@ public class BattleManager : MonoBehaviour
 
 
 
-            yield return ShowThenWait($"´ç½ÅÀº {PlayerSelectedMleeList[i].Name}À»(¸¦) Çß´Ù!");
+            yield return ShowThenWait($"ë‹¹ì‹ ì€ {PlayerSelectedMleeList[i].Name}ì„(ë¥¼) í–ˆë‹¤!");
 
             EnemySelectedMleeList.Add(RandomMleeByWeight(ShouldBeEnemy.ActiveSkills));
 
@@ -833,10 +847,10 @@ public class BattleManager : MonoBehaviour
                 MleeButton_4.gameObject.SetActive(true);
                 MleeButtonText_4.text = EnemySelectedMleeList[i].Name;
             }
-            yield return ShowThenWait($"´ç½ÅÀº {ShouldBeEnemy.Name}ÀÇ ¿òÁ÷ÀÓÀ» ÀĞ¾ú´Ù! {ShouldBeEnemy.Name}´Â {EnemySelectedMleeList[i].Name}À»(¸¦) Çß´Ù");
+            yield return ShowThenWait($"ë‹¹ì‹ ì€ {ShouldBeEnemy.Name}ì˜ ì›€ì§ì„ì„ ì½ì—ˆë‹¤! {ShouldBeEnemy.Name}ëŠ” {EnemySelectedMleeList[i].Name}ì„(ë¥¼) í–ˆë‹¤");
         }
 
-        // ÇÃ·¹ÀÌ¾î, Àû °¢°¢ µÎ ¹ø¾¿ ÁÖ°í¹Ş±â
+        // í”Œë ˆì´ì–´, ì  ê°ê° ë‘ ë²ˆì”© ì£¼ê³ ë°›ê¸°
         for (int i = 0; i < 2; i++)
         {
             float RandX = UnityEngine.Random.value * 100;
@@ -859,11 +873,11 @@ public class BattleManager : MonoBehaviour
                 ShouldBePlayer.CurrentHp -= totalEnemy;
                 PlayerSlider.value = (float)ShouldBePlayer.CurrentHp / ShouldBePlayer.HP;
 
-                yield return ShowThenWait($"{ShouldBeEnemy.Name}ÀÇ {EnemySelectedMleeList[i].Name}! {ShouldBePlayer.Name}Àº {totalEnemy} ÇÇÇØ¸¦ ÀÔ¾ú´Ù! È®·ü : { totalEnemyHitPer } ¿ø µ¥¹ÌÁö:{ enemyBase } ±â¼ú ¿¬°è : {playerMod}");
+                yield return ShowThenWait($"{ShouldBeEnemy.Name}ì˜ {EnemySelectedMleeList[i].Name}! {ShouldBePlayer.Name}ì€ {totalEnemy} í”¼í•´ë¥¼ ì…ì—ˆë‹¤! í™•ë¥  : { totalEnemyHitPer } ì› ë°ë¯¸ì§€:{ enemyBase } ê¸°ìˆ  ì—°ê³„ : {playerMod}");
             }
             else
             {
-                yield return ShowThenWait($"{ShouldBeEnemy.Name}ÀÇ {EnemySelectedMleeList[i].Name}Àº ºø³ª°¬´Ù! È®·ü : { totalEnemyHitPer }");
+                yield return ShowThenWait($"{ShouldBeEnemy.Name}ì˜ {EnemySelectedMleeList[i].Name}ì€ ë¹—ë‚˜ê°”ë‹¤! í™•ë¥  : { totalEnemyHitPer }");
             }
 
             float RandY = UnityEngine.Random.value * 100;
@@ -886,11 +900,11 @@ public class BattleManager : MonoBehaviour
                 ShouldBeEnemy.CurrentHp -= totalPlayer;
                 Enemy_WithMarkers[ShouldBeEnemy_int].slider.value = (float)ShouldBeEnemy.CurrentHp / ShouldBeEnemy.HP;
 
-                yield return ShowThenWait($"{ShouldBePlayer.Name}ÀÇ {PlayerSelectedMleeList[i].Name}! {ShouldBeEnemy.Name}Àº(´Â) {totalPlayer} ÇÇÇØ¸¦ ÀÔ¾ú´Ù! È®·ü : { totalPlayerHitPer } ¿ø µ¥¹ÌÁö:{ playerBase } ±â¼ú ¿¬°è : { enemyMod }");
+                yield return ShowThenWait($"{ShouldBePlayer.Name}ì˜ {PlayerSelectedMleeList[i].Name}! {ShouldBeEnemy.Name}ì€(ëŠ”) {totalPlayer} í”¼í•´ë¥¼ ì…ì—ˆë‹¤! í™•ë¥  : { totalPlayerHitPer } ì› ë°ë¯¸ì§€:{ playerBase } ê¸°ìˆ  ì—°ê³„ : { enemyMod }");
             }
             else
             {
-                yield return ShowThenWait($"{ShouldBePlayer.Name}ÀÇ {PlayerSelectedMleeList[i].Name}Àº ºø³ª°¬´Ù! È®·ü : { totalPlayerHitPer }");
+                yield return ShowThenWait($"{ShouldBePlayer.Name}ì˜ {PlayerSelectedMleeList[i].Name}ì€ ë¹—ë‚˜ê°”ë‹¤! í™•ë¥  : { totalPlayerHitPer }");
             }
         }
 
@@ -915,16 +929,20 @@ public class BattleManager : MonoBehaviour
 
         if(ShouldBeEnemy.CurrentHp <= 0)
         {
-            yield return ShowThenWait($"{ShouldBeEnemy.Name}Àº(´Â) Á×À½¿¡ ÀÌ¸£´Â ÇÇÇØ¸¦ ÀÔ¾ú´Ù!");
+            yield return ShowThenWait($"{ShouldBeEnemy.Name}ì€(ëŠ”) ì£½ìŒì— ì´ë¥´ëŠ” í”¼í•´ë¥¼ ì…ì—ˆë‹¤!");
         }
 
         DeathOfEnemy();
         Enemy_WithMakers_RESTART(enemies);
+        if (ISPlayerNotInBattle == true)
+        {
+            yield break;
+        }
     }
 
     public static IMlee RandomMleeByWeight(IList<IMlee> ActiveMlees)
     {
-        float Level = 0; //´©ÀûÇÕ °è½Ñ
+        float Level = 0; //ëˆ„ì í•© ê³„ì‹¼
         for (int i = 0; i < ActiveMlees.Count; i++)
         {
             float RangedWeight = ActiveMlees[i].ChanceWeight;
@@ -932,10 +950,10 @@ public class BattleManager : MonoBehaviour
         }
         if (Level <= 0) throw new System.InvalidOperationException("No pickable items (all counts <= 0).");
 
-        // [0, total) ±¸°£¿¡¼­ ³­¼ö 1°³
-        // totalÀÌ int ¹üÀ§¸¦ ³ÑÀ» ¼ö ÀÖÀ¸´Ï double·Î °è»ê
+        // [0, total) êµ¬ê°„ì—ì„œ ë‚œìˆ˜ 1ê°œ
+        // totalì´ int ë²”ìœ„ë¥¼ ë„˜ì„ ìˆ˜ ìˆìœ¼ë‹ˆ doubleë¡œ ê³„ì‚°
         double randomvalue = Random.value * Level;
-        float acc = 0; //°Å¸§¸Á
+        float acc = 0; //ê±°ë¦„ë§
 
         for (int i = 0; i < ActiveMlees.Count; i++)
         {
@@ -945,7 +963,7 @@ public class BattleManager : MonoBehaviour
             if (randomvalue < acc)
                 return ActiveMlees[i];
         }
-        // ºÎµ¿¿ÀÂ÷ ¹æÁö¿ë Æú¹é
+        // ë¶€ë™ì˜¤ì°¨ ë°©ì§€ìš© í´ë°±
         return ActiveMlees[ActiveMlees.Count - 1];
     }
 
@@ -956,11 +974,11 @@ public class BattleManager : MonoBehaviour
 
         while (isRightChose == false)
         {
-            // ´ë±â µé¾î°¡±â Àü ¹İµå½Ã ÃÊ±âÈ­
+            // ëŒ€ê¸° ë“¤ì–´ê°€ê¸° ì „ ë°˜ë“œì‹œ ì´ˆê¸°í™”
             buttonchoice.choicetrue = false;
             buttonchoice.choicewhat = -1;
 
-            // ¼±ÅÃÁö Ç¥½Ã(UI´Â ³×°¡ ¿¬°á)
+            // ì„ íƒì§€ í‘œì‹œ(UIëŠ” ë„¤ê°€ ì—°ê²°)
             TalkManager.Currenttalk = 2;
 
             List<string> playerSpellList = new();
@@ -972,16 +990,16 @@ public class BattleManager : MonoBehaviour
 
             int spellCount = playerSpellList.Count;
 
-            playerSpellList.Add("½ÃÀü Ãë¼Ò");
+            playerSpellList.Add("ì‹œì „ ì·¨ì†Œ");
 
             buttonchoice.SpawnButtons(playerSpellList.ToArray());
             yield return new WaitUntil(() => buttonchoice.choicetrue);
 
             if (buttonchoice.choicewhat == spellCount)
             {
-                // ¡°Çàµ¿ ³¡³»±â¡±¸¦ °ñ¶úÀ¸´Ï ÁÖ¹® ½ÇÇà ¾øÀÌ ºüÁ®³ª°¨
+                // â€œí–‰ë™ ëë‚´ê¸°â€ë¥¼ ê³¨ëìœ¼ë‹ˆ ì£¼ë¬¸ ì‹¤í–‰ ì—†ì´ ë¹ ì ¸ë‚˜ê°
                 isRightChose = true;
-                yield return ShowThenWait("´ç½ÅÀº ÁÖ¹® ½ÃÀüÀ» Ãë¼ÒÇß´Ù");
+                yield return ShowThenWait("ë‹¹ì‹ ì€ ì£¼ë¬¸ ì‹œì „ì„ ì·¨ì†Œí–ˆë‹¤");
                 yield break;
             }
 
@@ -993,7 +1011,7 @@ public class BattleManager : MonoBehaviour
                 break;
             }
 
-            yield return ShowThenWait($"Çàµ¿·ÂÀÌ ºÎÁ·ÇÕ´Ï´Ù! ÇÊ¿ä AP: {requiredSpellAp}, ÇöÀç AP: {player.CurrentAp}");
+            yield return ShowThenWait($"í–‰ë™ë ¥ì´ ë¶€ì¡±í•©ë‹ˆë‹¤! í•„ìš” AP: {requiredSpellAp}, í˜„ì¬ AP: {player.CurrentAp}");
         }
 
         if (isRightChose == false)
@@ -1009,21 +1027,25 @@ public class BattleManager : MonoBehaviour
 
                 if (Enemy_WithMarkers[i].enemies.CurrentHp <= 0)
                 {
-                    yield return ShowThenWait($"{Enemy_WithMarkers[i].enemies.Name}Àº(´Â) Á×À½¿¡ ÀÌ¸£´Â ÇÇÇØ¸¦ ÀÔ¾ú´Ù!");
+                    yield return ShowThenWait($"{Enemy_WithMarkers[i].enemies.Name}ì€(ëŠ”) ì£½ìŒì— ì´ë¥´ëŠ” í”¼í•´ë¥¼ ì…ì—ˆë‹¤!");
                 }
             }
         }
         DeathOfEnemy();
         Enemy_WithMakers_RESTART(enemies);
+        if (ISPlayerNotInBattle == true)
+        {
+            yield break;
+        }
     }
 
-    void UpdateMarkerForEnemy0(float dGame, RectTransform marker, RectTransform endpoint) // dGame = method(distance) °á°ú
+    void UpdateMarkerForEnemy0(float dGame, RectTransform marker, RectTransform endpoint) // dGame = method(distance) ê²°ê³¼
     {
-        // 1) 0~1 ºñÀ²·Î º¯È¯ (¼±Çü)
+        // 1) 0~1 ë¹„ìœ¨ë¡œ ë³€í™˜ (ì„ í˜•)
         float t = Mathf.InverseLerp(gameMin, gameMax, dGame);
         t = Mathf.Clamp01(t);
 
-        // 2) UI ¼±ºĞ(minPoint¡æmaxPoint) À§ À§Ä¡
+        // 2) UI ì„ ë¶„(minPointâ†’maxPoint) ìœ„ ìœ„ì¹˜
         Vector2 A = minPoint.anchoredPosition;
         Vector2 B = endpoint.anchoredPosition;
         Vector2 P = Vector2.Lerp(A, B, t);
@@ -1035,7 +1057,7 @@ public class BattleManager : MonoBehaviour
         }
 
         marker.anchoredPosition = Vector2.MoveTowards(marker.anchoredPosition, P, 800f * 0.1f);
-        À§Ä¡·Î ÃµÃµÈ÷ ÀÌµ¿ÇÏ·Á¸é*/
+        ìœ„ì¹˜ë¡œ ì²œì²œíˆ ì´ë™í•˜ë ¤ë©´*/
 
         marker.anchoredPosition = P;
     }
@@ -1080,7 +1102,7 @@ public class BattleManager : MonoBehaviour
             }
             else
             {
-                enemy.Name += $" ({idx + 1})"; // 8°³ ³ÑÀ¸¸é ¼ıÀÚ ºÙÀÌ´Â ½ÄÀ¸·Î ¿¹¿Ü Ã³¸®
+                enemy.Name += $" ({idx + 1})"; // 8ê°œ ë„˜ìœ¼ë©´ ìˆ«ì ë¶™ì´ëŠ” ì‹ìœ¼ë¡œ ì˜ˆì™¸ ì²˜ë¦¬
             }
         }
     }
@@ -1194,7 +1216,7 @@ public class BattleManager : MonoBehaviour
             caster = caster,
             Target = defender,
             enemySlots = Enemy_WithMarkers,
-            casterIsPlayer = caster == player, // ¶Ç´Â caster.IsPlayerControlled
+            casterIsPlayer = caster == player, // ë˜ëŠ” caster.IsPlayerControlled
             PlayerMarker = minPoint
         };
 
@@ -1218,19 +1240,19 @@ public class BattleManager : MonoBehaviour
 
             switch (mod.statId)
             {
-                case "Ã¼·Â":
+                case "ì²´ë ¥":
                     player.HP += Valu;
                     break;
-                case "½ºÇÇµå":
+                case "ìŠ¤í”¼ë“œ":
                     player.Speed += Valu;
                     break;
-                case "ÀÎÁö":
+                case "ì¸ì§€":
                     player.Perception += Valu;
                     break;
-                case "¸¶·Â":
+                case "ë§ˆë ¥":
                     player.MP += Valu;
                     break;
-                case "»ç°İ µ¥¹ÌÁö":
+                case "ì‚¬ê²© ë°ë¯¸ì§€":
                     player.ShotAtk += Valu;
                     break;
             }
@@ -1240,9 +1262,9 @@ public class BattleManager : MonoBehaviour
     public string PlayerStat()
     {
         string playerstat;
-        playerstat = $"ÇÃ·¹ÀÌ¾î ½ºÅÈ \n \nÃ¼·Â : {player.HP} Á¤½Å·Â : {player.MP}\n" +
-            $"½ºÇÇµå : {player.Speed} ÀÇÁö·Â : {player.WillPower}\n" +
-            $"»ç°İ µ¥¹ÌÁö : {player.ShotAtk} ÀÎÁö : {player.Perception}";
+        playerstat = $"í”Œë ˆì´ì–´ ìŠ¤íƒ¯ \n \nì²´ë ¥ : {player.HP} ì •ì‹ ë ¥ : {player.MP}\n" +
+            $"ìŠ¤í”¼ë“œ : {player.Speed} ì˜ì§€ë ¥ : {player.WillPower}\n" +
+            $"ì‚¬ê²© ë°ë¯¸ì§€ : {player.ShotAtk} ì¸ì§€ : {player.Perception}";
 
         return playerstat;
     }
@@ -1265,12 +1287,28 @@ public class BattleManager : MonoBehaviour
                     entry.manaslider
                 );
 
-                enemies[i] = null;  // ½ÇÁ¦ Àû ¸®½ºÆ®µµ null Ã³¸®
+                enemies[i] = null;  // ì‹¤ì œ ì  ë¦¬ìŠ¤íŠ¸ë„ null ì²˜ë¦¬
             }
         }
 
-        // Àû Á¤¸® ÈÄ UI/½½·Ô Àç¹èÄ¡
+        // ì  ì •ë¦¬ í›„ UI/ìŠ¬ë¡¯ ì¬ë°°ì¹˜
         Enemy_WithMakers_RESTART(enemies);
+
+        bool IsWin = true;
+
+        buttonchoice.choicetrue = false;
+        buttonchoice.choicewhat = -1;
+
+        foreach (var entry in Enemy_WithMarkers)
+        {
+            if (entry.enemies != null)
+                IsWin = false;
+        }
+
+        if(IsWin == true)
+        {
+            ISPlayerNotInBattle = true;
+        }
     }
 
     public void Update_ApSlider()
@@ -1278,4 +1316,6 @@ public class BattleManager : MonoBehaviour
         ApSlider.value = Mathf.InverseLerp(0, player.AP, player.CurrentAp);
         ApText.text = $"{player.CurrentAp}/{player.AP}";
     }
+
+
 }
