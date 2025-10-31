@@ -140,7 +140,7 @@ public class BattleManager : MonoBehaviour
             player.CurrentAp = player.AP;
             Update_ApSlider();
 
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < Enemy_WithMarkers.Count; i++)
             {
                 CurrentMovingEnemy_int = i;
 
@@ -202,7 +202,7 @@ public class BattleManager : MonoBehaviour
 
             if (ISPlayerNotInBattle == false)
             {
-                for (int i = 0; i < 8; i++)
+                for (int i = 0; i < Enemy_WithMarkers.Count; i++)
                 {
                     if (Enemy_WithMarkers[i].enemies != null)
                     {
@@ -228,12 +228,13 @@ public class BattleManager : MonoBehaviour
         Debug.Log("전투 종료");
         running = false;
 
+        yield return ShowThenWait("당신은 아직 살아있다..");
         sceneChanger.WinPageLoad();
     }
 
     public IEnumerator MovingPhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy)
     {
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < Enemy_WithMarkers.Count; i++)
         {
             if (Enemy_WithMarkers[i].enemies != null)
             {
@@ -920,7 +921,7 @@ public class BattleManager : MonoBehaviour
 
         minPoint.gameObject.SetActive(true);
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < Enemy_WithMarkers.Count; i++)
         {
             if (Enemy_WithMarkers[i].enemies != null)
             {
@@ -1150,14 +1151,14 @@ public class BattleManager : MonoBehaviour
 
         Enemy_WithMarkers = new();
 
-        while (enemiesList.Count < 8)
+        while (enemiesList.Count < EndPoints.Count)
         {
             enemiesList.Add(null);
         }
 
 
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < EndPoints.Count; i++)
         {
             Slider manaSlider = Markers[i].GetChild(0)?.GetComponent<Slider>();
 
@@ -1172,7 +1173,7 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < Enemy_WithMarkers.Count; i++)
         {
             if (Enemy_WithMarkers[i].enemies != null)
             {
