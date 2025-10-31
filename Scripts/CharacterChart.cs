@@ -21,6 +21,8 @@ public interface ICharacter
     void EquipMethod(IGun gun);
     int CharaterRunAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy);
 
+    (int DropWhat, int DropCount) DropItem {get; set;}
+
     List<ISpell> SpellData { get; set; }
     Dictionary<MleeATKType, (bool Active, float weight)> SkillData { get; set; }
 
@@ -66,6 +68,7 @@ public class PlayerCharacter : ICharacter
     {
         return -1;
     } //미구현
+    public (int DropWhat, int DropCount) DropItem { get; set; }
 
     [Header("장비 장착")]
 
@@ -154,6 +157,8 @@ public class Monster1 : ICharacter
             }
         }
     }
+
+    public (int DropWhat, int DropCount) DropItem { get; set; } = new (1, 1) ;
 
     [Header("장비 장착")]
 

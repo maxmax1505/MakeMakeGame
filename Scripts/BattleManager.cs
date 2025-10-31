@@ -11,6 +11,9 @@ public class BattleManager : MonoBehaviour
     public ChoiceManager buttonchoice;
     public ButtonValueSelector buttonValueSelector;
     public TooltipUI tooltipUIInstance;
+    public ItemListItem itemListItem;
+    public BodyPartGenerator PG;
+    public SceneChanger sceneChanger;
 
     [SerializeField] RectTransform uiCanvasRoot;
     [SerializeField] GameObject bulletPrefab;
@@ -224,6 +227,8 @@ public class BattleManager : MonoBehaviour
         }
         Debug.Log("전투 종료");
         running = false;
+
+        sceneChanger.WinPageLoad();
     }
 
     public IEnumerator MovingPhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy)
@@ -1279,6 +1284,19 @@ public class BattleManager : MonoBehaviour
 
             if (enemy.CurrentHp <= 0)
             {
+                if (enemy.EquipedGun is IItem thisGun)
+                {
+                    itemListItem.Get_ItemFromEnemy.Add(thisGun);
+                }
+
+                if(enemy.DropItem.DropWhat == 1)
+                {
+                    for (int D = 0; D < enemy.DropItem.DropCount; D++)
+                    {
+                        itemListItem.Get_ItemFromEnemy.Add(PG.GenerateRandomPart());
+                    }
+                }
+
                 Enemy_WithMarkers[i] = (
                     entry.marker,
                     entry.endpoint,
@@ -1289,6 +1307,7 @@ public class BattleManager : MonoBehaviour
 
                 enemies[i] = null;  // 실제 적 리스트도 null 처리
             }
+
         }
 
         // 적 정리 후 UI/슬롯 재배치

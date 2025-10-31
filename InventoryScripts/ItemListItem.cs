@@ -14,6 +14,8 @@ public class ItemListItem : MonoBehaviour
     [SerializeField] Transform contentRoot_Arm;
     [SerializeField] Transform contentRoot_Leg;
 
+    [SerializeField] Transform Content_WinItemList;
+
     [SerializeField] Transform ContentInventory;
 
     [SerializeField] ItemSlotUI ItemPrefab;
@@ -27,6 +29,8 @@ public class ItemListItem : MonoBehaviour
     [SerializeField] SlotNumber bodyNUM;
     [SerializeField] SlotNumber armNUM;
     [SerializeField] SlotNumber legNUM;
+
+    public List<IItem> Get_ItemFromEnemy;
 
     public List<IItem> PlayerEquippedList;
     public List<IItem> PlayerInventoryList;
@@ -47,16 +51,9 @@ public class ItemListItem : MonoBehaviour
 
     void Start()
     {
+        Get_ItemFromEnemy = new List<IItem>();
         PlayerInventoryList = new List<IItem>();
-        PlayerEquippedList = new List<IItem>
-        {
-            new NormalPistol(), new NormalPistol(),
-            PG.GenerateRandomPart(), PG.GenerateRandomPart(),
-            PG.GenerateRandomPart(), PG.GenerateRandomPart(),
-            PG.GenerateRandomPart(), PG.GenerateRandomPart(),
-            PG.GenerateRandomPart(), PG.GenerateRandomPart(),
-            PG.GenerateRandomPart(), PG.GenerateRandomPart()
-        };
+        PlayerEquippedList = new List<IItem> { new NormalPistol() };
 
         Refresh();
     }
@@ -116,7 +113,7 @@ public class ItemListItem : MonoBehaviour
         {
             v.Value.CurrentSlotNum = Mathf.Clamp(v.Value.CurrentSlotNum, 0, v.Value.AllSlotNum);
 
-           if(v.Value.AllSlotNum == 1)
+            if (v.Value.AllSlotNum == 1)
             {
                 v.Value.CurrentSlotNum = 1;
             }
@@ -174,6 +171,17 @@ public class ItemListItem : MonoBehaviour
         Refresh();
     }
 
+    public void Win_Refresh()
+    {
+        foreach (IItem item in Get_ItemFromEnemy)
+        {
+            var slot = Instantiate(ItemPrefab, Content_WinItemList);
+            slot.Bind_WinPage(item);
+        }
+
+        PlayerInventoryList.AddRange(Get_ItemFromEnemy);
+        Get_ItemFromEnemy = new List<IItem>();
+    }
 
     void Update_StatUI()
     {
