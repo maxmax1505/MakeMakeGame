@@ -29,7 +29,6 @@ public interface Flight
     float current_power_chance { get; set; }
     float current_evasive { get; set; }
     #endregion
-
     void Refresh(); 
 }
 

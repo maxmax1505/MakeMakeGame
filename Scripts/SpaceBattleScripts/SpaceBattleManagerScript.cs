@@ -20,14 +20,14 @@ public class SpaceBattleManagerScript : MonoBehaviour
     [SerializeField] GameObject gaugeSlotPrefab;
 
     // 게이지 단계(0~3) 추적
-    int speedChanceStage = 1;
-    int speedDistanceStage = 1;
-    int powerDamageStage = 1;
-    int powerChanceStage = 1;
-    int evasiveStage = 1;
-    int shieldStage = 1;
+    int speedChanceStage = 0;
+    int speedDistanceStage = 0;
+    int powerDamageStage = 0;
+    int powerChanceStage = 0;
+    int evasiveStage = 0;
+    int shieldStage = 0;
 
-    readonly float[] gaugeMultipliers = { 1f, 1f, 1.5f, 2f };
+    readonly float[] gaugeMultipliers = { 0.5f, 1f, 1.5f, 2f };
 
     #region 버튼에서 호출할 메서드
     public void OnClickSpeedChanceUp() =>
@@ -96,7 +96,6 @@ public class SpaceBattleManagerScript : MonoBehaviour
     void UpdateSpeedDistance()
     {
         playerShip.current_speed_distance = playerShip.speed_distance * MultiplierForStage(speedDistanceStage);
-        playerShip.current_distance = playerShip.distance * MultiplierForStage(speedDistanceStage);
     }
 
     void UpdatePowerDamage()

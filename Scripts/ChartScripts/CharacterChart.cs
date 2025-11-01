@@ -4,6 +4,7 @@ using UnityEngine;
 
 public interface ICharacter
 {
+    #region 여러가지 스탯
     string Name { get; set; }
     int HP { get; set; }
     int CurrentHp { get; set; }
@@ -16,11 +17,15 @@ public interface ICharacter
     float Speed { get; set; }
     float Distance { get; set; }
     float Perception { get; set; }
+    #endregion
 
+    #region 총 관련
     IGun EquipedGun { get; set; }
     void EquipMethod(IGun gun);
-    int CharaterRunAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy);
+    void Initialize(IGun gun);
+    #endregion
 
+    int CharaterRunAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy);
     (int DropWhat, int DropCount) DropItem {get; set;}
 
     List<ISpell> SpellData { get; set; }
@@ -29,7 +34,7 @@ public interface ICharacter
     List<IMlee> ActiveSkills { get; set; }
 
     void SkillCheckMethod();
-    void Initialize(IGun gun);
+    
 }
 
 [Serializable]
@@ -49,8 +54,8 @@ public class PlayerCharacter : ICharacter
         // 나머지 초기화
     }
 
+    #region 기본 수치들
     [Header("기본 수치들")]
-
     public string Name { get; set; } = "당신";
     public int HP { get; set; } = 10;
     public int CurrentHp { get; set; } = 10;
@@ -63,6 +68,7 @@ public class PlayerCharacter : ICharacter
     public float Speed { get; set; } = 10;
     public float Distance { get; set; } = 0;
     public float Perception { get; set; } = 10;
+    #endregion
 
     public int CharaterRunAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy)
     {
@@ -70,6 +76,7 @@ public class PlayerCharacter : ICharacter
     } //미구현
     public (int DropWhat, int DropCount) DropItem { get; set; }
 
+    #region 총기 관련
     [Header("장비 장착")]
 
     public IGun EquipedGun { get; set; }
@@ -77,6 +84,7 @@ public class PlayerCharacter : ICharacter
     {
         EquipedGun = gun;
     }
+    #endregion
 
     [Header("스킬 데이터 : 액티브 상태 / 가중치")]
 
