@@ -22,11 +22,12 @@ public class ScrollButton : MonoBehaviour
         scrollRect.verticalNormalizedPosition =
             Mathf.Clamp01(scrollRect.verticalNormalizedPosition + Step);
 
-        if (ThisSlot.CurrentSlotNum != 1)
+        if (ThisSlot.CurrentSlotNum > 1)
         {
             ThisSlot.CurrentSlotNum--;
         }
 
+        ThisSlot.CurrentSlotNum = Mathf.Clamp(ThisSlot.CurrentSlotNum, 0, ThisSlot.AllSlotNum);
         ThisSlot.UpdateSlotNum();
     }
 
@@ -38,11 +39,12 @@ public class ScrollButton : MonoBehaviour
         Debug.Log(ThisSlot);
         Debug.Log(ThisSlot.CurrentSlotNum);
 
-        if (ThisSlot.CurrentSlotNum != ThisSlot.AllSlotNum)
+        if (ThisSlot.CurrentSlotNum < ThisSlot.AllSlotNum)
         {
             ThisSlot.CurrentSlotNum++;
         }
 
+        ThisSlot.CurrentSlotNum = Mathf.Clamp(ThisSlot.CurrentSlotNum, 0, ThisSlot.AllSlotNum);
         ThisSlot.UpdateSlotNum();
     }
 }

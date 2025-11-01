@@ -63,4 +63,23 @@ public class ItemSlotUI : MonoBehaviour
         slotButton.onClick.RemoveAllListeners();
         slotButton.onClick.AddListener(() => owner.Eqquip(item, slotObject));
     }
+
+    public void Bind_WinPage(IItem item)
+    {
+        switch (item)
+        {
+            case IGun gun:
+
+                ItemText.text = $"{gun.Name} / 데미지 : {gun.ShotDamage} × {gun.ShotCountPerTurn}";
+
+                break;
+
+            case BodyPart bodyPart:
+
+                ItemText.text = $"-{bodyPart.name}-\n작용: <color=green>{bodyPart.bonuses[0].statId} {bodyPart.bonuses[0].value}</color>\n부작용: <color=red>{bodyPart.penalties[0].statId}{bodyPart.penalties[0].value}</color>";
+
+                break;
+        }
+    }
+
 }
