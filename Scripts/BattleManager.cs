@@ -85,7 +85,7 @@ public class BattleManager : MonoBehaviour
 
     //실행전 캐릭터 객체 초기화
     ICharacter player;
-    List<ICharacter> enemies;
+    public List<ICharacter> enemies;
     public List<IGun> guns;
 
     public enum MoveIntent { Advance = 0, Keep = 1, Retreat = 2 }
