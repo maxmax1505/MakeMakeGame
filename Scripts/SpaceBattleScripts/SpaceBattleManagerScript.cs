@@ -9,6 +9,8 @@ public class SpaceBattleManagerScript : MonoBehaviour
 {
     public PlayerShip playerShip = new PlayerShip { };
 
+    FlightBattleScript flightBattle; 
+
     [Header("게이지 컨텐츠 루트")]
     [SerializeField] Transform speedChanceContent;
     [SerializeField] Transform speedDistanceContent;
@@ -28,6 +30,11 @@ public class SpaceBattleManagerScript : MonoBehaviour
     int shieldStage = 0;
 
     readonly float[] gaugeMultipliers = { 0.5f, 1f, 1.5f, 2f };
+
+    public void SendPlayer()
+    {
+        flightBattle.SetPlayer(playerShip);
+    }
 
     #region 버튼에서 호출할 메서드
     public void OnClickSpeedChanceUp() =>
@@ -119,4 +126,5 @@ public class SpaceBattleManagerScript : MonoBehaviour
                                     Mathf.Max(0, shieldStage - 1) * playerShip.shield_One;
     }
     #endregion
+
 }
