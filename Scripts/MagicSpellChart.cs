@@ -67,7 +67,7 @@ public class MagicSpellChart : MonoBehaviour
             if (context.casterIsPlayer == true)
             {
                 int totalDamage = 0;
-                for (int i = 0; i < BattleManager.Enemy_WithMarkers.Count; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     if (context.enemySlots[i].enemy == null)
                     {
@@ -135,7 +135,7 @@ public class MagicSpellChart : MonoBehaviour
             if (context.casterIsPlayer == true)
             {
                 int totalDamage = 0;
-                for (int i = 0; i < BattleManager.Enemy_WithMarkers.Count; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     if (context.enemySlots[i].enemy == null)
                     {
