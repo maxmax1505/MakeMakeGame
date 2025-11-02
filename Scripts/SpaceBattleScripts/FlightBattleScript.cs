@@ -1,4 +1,4 @@
-using System;
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,16 +17,15 @@ public class FlightBattleScript : MonoBehaviour
     IFlight PlayerFlight;
     MonsterShip monsterShip = new MonsterShip { };
 
-    public void Start()
+    public void Awake()
     {
         playerRect = PlayerShip.GetComponent<RectTransform>();
         enemyRect = EnemyShip.GetComponent<RectTransform>();
 
-        StartCoroutine(FlightBattle());
+        monsterShip.Refresh();
     }
     public void SetPlayer(IFlight player)
     {
-        if (player == null) throw new ArgumentNullException(nameof(player));
         this.PlayerFlight = player;
     }
     public IEnumerator FlightBattle()
@@ -57,7 +56,7 @@ public class FlightBattleScript : MonoBehaviour
         playerStart = playerRect.anchoredPosition;
         enemyStart = enemyRect.anchoredPosition;
 
-        float ranX = UnityEngine.Random.RandomRange(0, PlayerFlight.current_speed_Chance + monsterShip.current_speed_Chance);
+        float ranX = Random.Range(0, PlayerFlight.current_speed_Chance + monsterShip.current_speed_Chance);
 
         if (ranX < PlayerFlight.current_speed_Chance)
         {

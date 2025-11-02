@@ -29,6 +29,8 @@ public class BattleManager : MonoBehaviour
     public static int TargetEnemy_Int;
     bool IsFirstRun = true;
 
+    public bool FuckYouFuckYou = false;
+
     public int CurrentMovingEnemy_int;
 
     public List<RectTransform> Markers;
@@ -103,6 +105,8 @@ public class BattleManager : MonoBehaviour
         IfNameSame();
 
         player = new PlayerCharacter(guns[0]);
+        itemListItem.Update_StatUI();
+        FuckYouFuckYou = true;
 
         Enemy_WithMakers_RESTART(enemies);
 
@@ -1282,6 +1286,7 @@ public class BattleManager : MonoBehaviour
     public string PlayerStat()
     {
         string playerstat;
+
         playerstat = $"플레이어 스탯 \n \n체력 : {player.HP} 정신력 : {player.MP}\n" +
             $"스피드 : {player.Speed} 의지력 : {player.WillPower}\n" +
             $"사격 데미지 : {player.ShotAtk} 인지 : {player.Perception}";

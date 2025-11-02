@@ -9,7 +9,7 @@ public class SpaceBattleManagerScript : MonoBehaviour
 {
     public PlayerShip playerShip = new PlayerShip { };
 
-    FlightBattleScript flightBattle; 
+    [SerializeField] FlightBattleScript flightBattle; 
 
     [Header("게이지 컨텐츠 루트")]
     [SerializeField] Transform speedChanceContent;
@@ -31,9 +31,15 @@ public class SpaceBattleManagerScript : MonoBehaviour
 
     readonly float[] gaugeMultipliers = { 0.5f, 1f, 1.5f, 2f };
 
+    public void Start()
+    {
+        SendPlayer();
+    }
     public void SendPlayer()
     {
         flightBattle.SetPlayer(playerShip);
+        playerShip.Refresh();
+        StartCoroutine(flightBattle.FlightBattle());
     }
 
     #region 버튼에서 호출할 메서드

@@ -107,7 +107,10 @@ public class ItemListItem : MonoBehaviour
             slot.Bind_Inventory(item, slotButton, slot.gameObject);
         }
 
-        Update_StatUI();
+        if (battleManager.FuckYouFuckYou == true)
+        {
+            Update_StatUI();
+        }
 
         foreach (var v in slotNumberLookup)
         {
@@ -188,7 +191,7 @@ public class ItemListItem : MonoBehaviour
         Get_ItemFromEnemy.Clear();
     }
 
-    void Update_StatUI()
+    public void Update_StatUI()
     {
         if (playerStatUI_Text != null)
             playerStatUI_Text.text = battleManager.PlayerStat();
