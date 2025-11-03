@@ -23,7 +23,7 @@ public class BattleManager : MonoBehaviour
     public bool running;
     public bool ApCheck = false;
     public int cachedMoveChoice;
-    public int MleeRange = 20;
+    public int MleeRange = 30;
     public float ShotRateSpeed = 0.3f;
 
     public static int TargetEnemy_Int;
@@ -45,7 +45,7 @@ public class BattleManager : MonoBehaviour
     public TextMeshProUGUI ApText;
 
     public float gameMin = 0f;       // enemires[].distance의 선형 보간을 위한 수, 최소 distance
-    [SerializeField] public static float gameMax = 200f;     // enemires[].distance의 선형 보간을 위한 수, 최대 distance
+    [SerializeField] public static float gameMax = 250f;     // enemires[].distance의 선형 보간을 위한 수, 최대 distance
 
     public enum MoveIntent { Advance = 0, Keep = 1, Retreat = 2 }
     public enum MoveCaseNine { pAeA = 0, pKeK = 1, pReR = 2, pA = 3, pR = 4, eA = 5, eR = 6, exception = -1 }
@@ -434,7 +434,7 @@ public class BattleManager : MonoBehaviour
         yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
 
     }
-    void FireBullet(RectTransform origin, RectTransform target, bool hit)
+    public void FireBullet(RectTransform origin, RectTransform target, bool hit)
     {
         if (bulletPrefab == null || origin == null || target == null) return;
 

@@ -38,7 +38,7 @@ public class PlayerShip : IFlight
     public int Hull { get; set; } = 100;
     public int CurrentHull { get; set; } = 100;
     public float speed_Chance { get; set; } = 10f;
-    public float speed_distance { get; set; } = 10f;
+    public float speed_distance { get; set; } = 100f;
     public float power_damage { get; set; } = 2f;
     public float power_chance { get; set; } = 10f;
     public float evasive { get; set; } = 10f;
@@ -75,7 +75,7 @@ public class MonsterShip : IFlight
     public int Hull { get; set; } = 100;
     public int CurrentHull { get; set; } = 100;
     public float speed_Chance { get; set; } = 10f;
-    public float speed_distance { get; set; } = 10f;
+    public float speed_distance { get; set; } = 100f;
     public float power_damage { get; set; } = 2f;
     public float power_chance { get; set; } = 10f;
     public float evasive { get; set; } = 10f;
