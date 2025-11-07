@@ -39,7 +39,7 @@ public class SpaceBattleManagerScript : MonoBehaviour
     {
         flightBattle.SetPlayer(playerShip);
         playerShip.Refresh();
-        StartCoroutine(flightBattle.FlightMove());
+        //StartCoroutine(flightBattle.FlightMove());
     }
 
     #region 버튼에서 호출할 메서드
