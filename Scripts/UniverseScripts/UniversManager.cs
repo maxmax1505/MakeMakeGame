@@ -16,6 +16,8 @@ public class UniversManager : MonoBehaviour
     [SerializeField] GameObject PlanetPrefab;
     [SerializeField] RectTransform uiParent;
 
+    [SerializeField] int CurrentPlanet;
+
     public void Start()
     {
         LetThereBeLight();
@@ -92,18 +94,25 @@ public class UniversManager : MonoBehaviour
     public void UpdatePlanet()
     {
 
-        for(int i = 0; i < planetsPositionList.Count; i ++)
+        for (int i = 0; i < planetsPositionList.Count; i++)
         {
-            NormalPlanet normalPlanet = new NormalPlanet();
+            NormalPlanet normalPlanet = new NormalPlanet
+            {
+                poSiTion = planetsPositionList[i],
+                PlanetIndex = i,
+                Name = RandomPlanetName()
+            };
             Planets.Add(normalPlanet);
 
-            Planets[i].poSiTion = planetsPositionList[i];
-        }
-
-        foreach (var pos in planetsPositionList)
-        {
             var planet = Instantiate(PlanetPrefab, uiParent);
-            planet.GetComponent<RectTransform>().anchoredPosition = pos;
+            planet.GetComponent<RectTransform>().anchoredPosition = planetsPositionList[i];
+
+            int index = i;                               // 루프마다 복사
+            Button planetButton = planet.GetComponent<Button>();
+            planetButton.onClick.RemoveAllListeners();
+            planetButton.onClick.AddListener(() =>
+                Debug.Log($"Planet index: {index}, 행성명 : {Planets[index].Name}")
+            );
         }
     }
 
@@ -124,5 +133,18 @@ public class UniversManager : MonoBehaviour
                 return false;
         }
         return true;
+    }
+
+    public string RandomPlanetName()
+    {
+        string[] syllable1 = { "Ara", "Cal", "Eon", "Lys", "Or", "Zan", "San", "Psy" };
+        string[] syllable2 = { "nos", "thar", "dora", "phus", "mer", "vara", "saar", "zar", "nay" };
+
+        string randomNum = UnityEngine.Random.Range(0, 999).ToString();
+        string RandomName() =>
+            syllable1[Random.Range(0, syllable1.Length)] +
+            syllable2[Random.Range(0, syllable2.Length)] + "-" + randomNum;
+
+        return RandomName();
     }
 }
