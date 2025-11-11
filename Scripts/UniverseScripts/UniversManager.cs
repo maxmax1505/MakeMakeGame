@@ -11,17 +11,19 @@ public class UniversManager : MonoBehaviour
     [SerializeField] float targetCount = 30;
 
     List<Vector2> planetsPositionList = new();
-    List<IPlanet> Planets = new();
+    public List<IPlanet> Planets = new();
 
     [SerializeField] GameObject PlanetPrefab;
     [SerializeField] RectTransform uiParent;
+    [SerializeField] TextMeshProUGUI planetNameText;
 
-    [SerializeField] int CurrentPlanet;
+    public int CurrentPlanet = 0;
 
     public void Start()
     {
         LetThereBeLight();
-        UpdatePlanet();
+        BuildPlanetData();
+        //RenderPlanetButtons();
     }
     /* 푸아송 방법
     public void LetThereBeLight()
@@ -91,28 +93,38 @@ public class UniversManager : MonoBehaviour
         }
     }
 
-    public void UpdatePlanet()
+    void BuildPlanetData()
     {
+        Planets.Clear();
 
         for (int i = 0; i < planetsPositionList.Count; i++)
         {
-            NormalPlanet normalPlanet = new NormalPlanet
+            Planets.Add(new NormalPlanet
             {
                 poSiTion = planetsPositionList[i],
                 PlanetIndex = i,
                 Name = RandomPlanetName()
-            };
-            Planets.Add(normalPlanet);
+            });
+        }
+    }
 
-            var planet = Instantiate(PlanetPrefab, uiParent);
-            planet.GetComponent<RectTransform>().anchoredPosition = planetsPositionList[i];
+    void RenderPlanetButtons()
+    {
+        foreach (Transform child in uiParent)
+            Destroy(child.gameObject);
 
-            int index = i;                               // 루프마다 복사
-            Button planetButton = planet.GetComponent<Button>();
-            planetButton.onClick.RemoveAllListeners();
-            planetButton.onClick.AddListener(() =>
-                Debug.Log($"Planet index: {index}, 행성명 : {Planets[index].Name}")
+        for (int i = 0; i < Planets.Count; i++)
+        {
+            var planetUI = Instantiate(PlanetPrefab, uiParent);
+            planetUI.GetComponent<RectTransform>().anchoredPosition = Planets[i].poSiTion;
+
+            int index = i;
+            var button = planetUI.GetComponent<Button>();
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() =>
+                Debug.Log($"Planet index: {index}, 행성명: {Planets[index].Name}")
             );
+            button.onClick.AddListener(() => CurrentPlanet = index);
         }
     }
 
@@ -138,7 +150,7 @@ public class UniversManager : MonoBehaviour
     public string RandomPlanetName()
     {
         string[] syllable1 = { "Ara", "Cal", "Eon", "Lys", "Or", "Zan", "San", "Psy" };
-        string[] syllable2 = { "nos", "thar", "dora", "phus", "mer", "vara", "saar", "zar", "nay" };
+        string[] syllable2 = { "nos", "thar", "dora", "phus", "mer", "vara", "saar", "zar", "ray" };
 
         string randomNum = UnityEngine.Random.Range(0, 999).ToString();
         string RandomName() =>
@@ -147,4 +159,5 @@ public class UniversManager : MonoBehaviour
 
         return RandomName();
     }
+
 }
