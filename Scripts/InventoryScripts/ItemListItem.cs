@@ -5,9 +5,21 @@ using UnityEngine.UI;
 using TMPro;
 
 public enum ItemType { Gun, Head, Leg, Body, Arm }
+public enum StatId { Hp, Speed, Perseption, Mp, ShotDamage }
+
 
 public class ItemListItem : MonoBehaviour
 {
+    public string GetStatLabel(StatId stat) => stat switch
+    {
+        StatId.Speed => "스피드",
+        StatId.Hp => "체력",
+        StatId.ShotDamage => "사격 데미지",
+        StatId.Perseption => "인지",
+        StatId.Mp => "마력",
+        _ => stat.ToString()
+    };
+
     [SerializeField] Transform contentRoot_Gun;
     [SerializeField] Transform contentRoot_Head;
     [SerializeField] Transform contentRoot_Body;

@@ -11,6 +11,7 @@ public class DungeonManager : MonoBehaviour
     [SerializeField] Transform EndPoint;
     [SerializeField] BattleManager battleManager;
     [SerializeField] SceneChanger sceneChanger;
+    [SerializeField] UniversManager universManager;
 
     [SerializeField] Transform PlayerIcon;
     [SerializeField] public float travelTime = 30;
@@ -55,7 +56,10 @@ public class DungeonManager : MonoBehaviour
 
     public IEnumerator StartBattle()
     {
-        battleManager.enemies = new List<ICharacter> { new Monster1(battleManager.guns[0]) };
+        int monLev = 1;
+        float riSK = universManager.ComputeRisk(monLev);
+        battleManager.enemies = new List<ICharacter> { new Monster1(battleManager.guns[0], monLev, riSK), new Monster1(battleManager.guns[0], monLev, riSK) };
+        battleManager.IfNameSame();
         sceneChanger.DungeonToBattle();
         yield return new WaitUntil(() => NotInBattle);
     }

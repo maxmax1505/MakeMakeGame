@@ -33,7 +33,7 @@ public class ItemSlotUI : MonoBehaviour
 
             case BodyPart bodyPart:
 
-                ItemText.text = $"-{bodyPart.name}-\n작용: <color=green>{bodyPart.bonuses[0].statId} {bodyPart.bonuses[0].value}</color>\n부작용: <color=red>{bodyPart.penalties[0].statId}{bodyPart.penalties[0].value}</color>";
+                ItemText.text = $"-{bodyPart.name}-\n작용: <color=green>{bodyPart.bonuses[0].statName} {bodyPart.bonuses[0].value}</color>\n부작용: <color=red>{bodyPart.penalties[0].statName}{bodyPart.penalties[0].value}</color>";
 
                 break;
         }
@@ -55,7 +55,7 @@ public class ItemSlotUI : MonoBehaviour
 
             case BodyPart bodyPart:
 
-                ItemText.text = $"-{bodyPart.name}-\n작용: <color=green>{bodyPart.bonuses[0].statId} {bodyPart.bonuses[0].value}</color>\n부작용: <color=red>{bodyPart.penalties[0].statId}{bodyPart.penalties[0].value}</color>";
+                ItemText.text = $"-{bodyPart.name}-\n작용: <color=green>{bodyPart.bonuses[0].statName} {bodyPart.bonuses[0].value}</color>\n부작용: <color=red>{bodyPart.penalties[0].statName}{bodyPart.penalties[0].value}</color>";
 
                 break;
         }
@@ -76,7 +76,7 @@ public class ItemSlotUI : MonoBehaviour
 
             case BodyPart bodyPart:
 
-                ItemText.text = $"-{bodyPart.name}-\n작용: <color=green>{bodyPart.bonuses[0].statId} {bodyPart.bonuses[0].value}</color>\n부작용: <color=red>{bodyPart.penalties[0].statId}{bodyPart.penalties[0].value}</color>";
+                ItemText.text = $"-{bodyPart.name}-\n작용: <color=green>{bodyPart.bonuses[0].statName} {bodyPart.bonuses[0].value}</color>\n부작용: <color=red>{bodyPart.penalties[0].statName}{bodyPart.penalties[0].value}</color>";
 
                 break;
         }

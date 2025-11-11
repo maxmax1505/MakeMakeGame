@@ -7,8 +7,19 @@ using TMPro;
 
 public class UniversManager : MonoBehaviour
 {
+    //public int CurrentLevel = 1;
+
     [SerializeField] float minSpacing = 100;
     [SerializeField] float targetCount = 30;
+    [SerializeField] public int minLevel = 10;
+    [SerializeField] public int maxLevel = 50;
+    [SerializeField] public float riskCurve = 1.2f;   // °î¼± Á¶Àý
+    public float ComputeRisk(int level)
+    {
+        float t = Mathf.Clamp01((level - minLevel) / (float)(maxLevel - minLevel));
+        float leveled = Mathf.Pow(t, riskCurve);
+        return Mathf.Lerp(1f, 100f, leveled);
+    }
 
     List<Vector2> planetsPositionList = new();
     public List<IPlanet> Planets = new();

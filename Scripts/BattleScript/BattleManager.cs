@@ -15,6 +15,7 @@ public class BattleManager : MonoBehaviour
     public ItemListItem itemListItem;
     public BodyPartGenerator PG;
     public SceneChanger sceneChanger;
+    public UniversManager universManager;
 
     [SerializeField] RectTransform uiCanvasRoot;
     [SerializeField] GameObject bulletPrefab;
@@ -100,15 +101,16 @@ public class BattleManager : MonoBehaviour
         //테스트용
 
         guns = new List<IGun> { new NormalPistol() };
-        Debug.Log(guns[0].Name);
-        enemies = new List<ICharacter> { new Monster1(guns[0]), new Monster1(guns[0]) };
-        IfNameSame();
+        //Debug.Log(guns[0].Name);
+        
+        //enemies = new List<ICharacter> { new Monster1(guns[0], monLev, riSK), new Monster1(guns[0], monLev, riSK) };
+        //IfNameSame();
 
         player = new PlayerCharacter(guns[0]);
         itemListItem.Update_StatUI();
         FuckYouFuckYou = true;
 
-        Enemy_WithMakers_RESTART(enemies);
+        //Enemy_WithMakers_RESTART(enemies);
 
         minPoint.gameObject.GetComponent<TooltipTrigger>().isPlayerMarker = true;
 
@@ -934,7 +936,7 @@ public class BattleManager : MonoBehaviour
         MleeButton_4.gameObject.SetActive(false);
 
         minPoint.gameObject.SetActive(true);
-
+        /*
         for (int i = 0; i < Enemy_WithMarkers.Count; i++)
         {
             if (Enemy_WithMarkers[i].enemies != null)
@@ -946,6 +948,7 @@ public class BattleManager : MonoBehaviour
                 continue;
             }
         }
+        */
 
         if(ShouldBeEnemy.CurrentHp <= 0)
         {
@@ -953,7 +956,9 @@ public class BattleManager : MonoBehaviour
         }
 
         DeathOfEnemy();
-        Enemy_WithMakers_RESTART(enemies);
+
+        //Enemy_WithMakers_RESTART(enemies);
+
         if (ISPlayerNotInBattle == true)
         {
             yield break;
@@ -1263,21 +1268,21 @@ public class BattleManager : MonoBehaviour
                 Valu = mod.value;
             }
 
-            switch (mod.statId)
+            switch (mod.statType)
             {
-                case "체력":
+                case StatId.Hp:
                     player.HP += Valu;
                     break;
-                case "스피드":
+                case StatId.Speed:
                     player.Speed += Valu;
                     break;
-                case "인지":
+                case StatId.Perseption:
                     player.Perception += Valu;
                     break;
-                case "마력":
+                case StatId.Mp:
                     player.MP += Valu;
                     break;
-                case "사격 데미지":
+                case StatId.ShotDamage:
                     player.ShotAtk += Valu;
                     break;
             }
@@ -1312,7 +1317,7 @@ public class BattleManager : MonoBehaviour
                 {
                     for (int D = 0; D < enemy.DropItem.DropCount; D++)
                     {
-                        itemListItem.Get_ItemFromEnemy.Add(PG.GenerateRandomPart());
+                        itemListItem.Get_ItemFromEnemy.Add(PG.GenerateRandomPart(enemy.Level));
                     }
                 }
 

@@ -6,6 +6,7 @@ public interface ICharacter
 {
     #region 여러가지 스탯
     string Name { get; set; }
+    int Level { get; set; }
     int HP { get; set; }
     int CurrentHp { get; set; }
     int MP { get; set; }
@@ -13,10 +14,15 @@ public interface ICharacter
     int AP { get; set; }
     int CurrentAp { get; set; }
     float WillPower { get; set; }
+    float base_WillPower { get; set; }
     float ShotAtk { get; set; }
+    float base_ShotAtk { get; set; }
     float Speed { get; set; }
+    float base_Speed { get; set; }
     float Distance { get; set; }
+    float base_Distance { get; set; }
     float Perception { get; set; }
+    float base_Perception { get; set; }
     #endregion
 
     #region 총 관련
@@ -57,6 +63,7 @@ public class PlayerCharacter : ICharacter
     #region 기본 수치들
     [Header("기본 수치들")]
     public string Name { get; set; } = "당신";
+    public int Level { get; set; } = 1;
     public int HP { get; set; } = 10;
     public int CurrentHp { get; set; } = 10;
     public int MP { get; set; } = 10;
@@ -64,10 +71,15 @@ public class PlayerCharacter : ICharacter
     public int AP { get; set; } = 10;
     public int CurrentAp { get; set; } = 10;
     public float WillPower { get; set; } = 3;
+    public float base_WillPower { get; set; } = 3;
     public float ShotAtk { get; set; } = 1;
+    public float base_ShotAtk { get; set; } = 1;
     public float Speed { get; set; } = 10;
+    public float base_Speed { get; set; } = 10;
     public float Distance { get; set; } = 0;
+    public float base_Distance { get; set; } = 0;
     public float Perception { get; set; } = 10;
+    public float base_Perception { get; set; } = 10;
     #endregion
 
     public int CharaterRunAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy)
@@ -121,14 +133,26 @@ public class PlayerCharacter : ICharacter
 
 public class Monster1 : ICharacter
 {
-    public Monster1(IGun gun)
+    public Monster1(IGun gun, int Lev, float risk)
     {
+        this.Level = Lev;
         Initialize(gun);
+        ApplyLevel(risk);
+    }
+    void ApplyLevel(float risk)
+    {
+        HP = CurrentHp = Mathf.RoundToInt(HP * (1f + risk * 0.1f));
+        MP = CurrentMp = Mathf.RoundToInt(MP * (1f + risk * 1.5f));
+        ShotAtk = base_ShotAtk * (1f + risk * 1.2f);
+        Speed = base_Speed * (1f + risk * 0.8f);
+        WillPower = 3f + risk * 2f;
+        //Distance = Mathf.Lerp(50f, 20f, risk);   // 고레벨일수록 더 가까운 거리에서 시작 등
     }
 
     [Header("기본 수치들")]
 
     public string Name { get; set; } = "몬스터";
+    public int Level { get; set; } = 1;
     public int HP { get; set; } = 10;
     public int CurrentHp { get; set; } = 10;
     public int MP { get; set; } = 10;
@@ -136,10 +160,15 @@ public class Monster1 : ICharacter
     public int AP { get; set; }
     public int CurrentAp { get; set; }
     public float WillPower { get; set; } = 3;
+    public float base_WillPower { get; set; } = 3;
     public float ShotAtk { get; set; } = 1;
+    public float base_ShotAtk { get; set; } = 1;
     public float Speed { get; set; } = 10;
+    public float base_Speed { get; set; } = 10;
     public float Distance { get; set; } = 50;
+    public float base_Distance { get; set; } = 50;
     public float Perception { get; set; } = 10;
+    public float base_Perception { get; set; } = 10;
 
 
     public int CharaterRunAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy)
