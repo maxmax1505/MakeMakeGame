@@ -37,7 +37,7 @@ public class BattleManager : MonoBehaviour
     public List<RectTransform> Markers;
     public List<RectTransform> EndPoints;
     public List<Slider> Sliders;
-    public static List<(RectTransform marker, RectTransform endpoint, ICharacter enemies, Slider slider, Slider manaslider)> Enemy_WithMarkers;
+    public static List<(RectTransform marker, RectTransform endpoint, ICharacter enemies, Slider slider, Slider manaslider, GameObject animate)> Enemy_WithMarkers;
 
     /* 이동, 사격 시퀀스에서 UI에 나와 적 표시 */
     public RectTransform minPoint;   // 가상 직선 경로의 시작점 (min)  
@@ -362,7 +362,8 @@ public class BattleManager : MonoBehaviour
                 ShotDamageMethod(attacker, defender);
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
                 TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {ShotChance}");
-                FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
+                //FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
+                FireShotgun(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
                 Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.red;
                 Enemy_WithMarkers[TargetEnemy_Int].slider.value = (float)Enemy_WithMarkers[TargetEnemy_Int].enemies.CurrentHp / Enemy_WithMarkers[TargetEnemy_Int].enemies.HP;
 
@@ -371,7 +372,8 @@ public class BattleManager : MonoBehaviour
             else
             {
                 TalkManager.Instance.ShowTemp($"{i}발째 : 감나빗! {attacker.Name}의 공격은 빗나갔다! 확률 : {ShotChance}");
-                FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, false);
+                //FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, false);
+                FireShotgun(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, false);
 
                 Debug.Log($"{i}발째 : 감나빗!");
             }
@@ -452,6 +454,37 @@ public class BattleManager : MonoBehaviour
         if (bulletManage != null)
         {
             bulletManage.Initialize(target.anchoredPosition, hit);
+        }
+    }
+
+    void FireShotgun(RectTransform origin, RectTransform target, bool hit, int pelletCount = 6, float spreadAngle = 6f)
+    {
+        Vector2 start = origin.anchoredPosition;
+        Vector2 dir = (target.anchoredPosition - start).normalized;
+        float baseAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        float baseDistance = Vector2.Distance(start, target.anchoredPosition);
+
+        for (int i = 0; i < pelletCount; i++)
+        {
+            float offset = Random.Range(-spreadAngle, spreadAngle);
+            float angle = baseAngle + offset;
+
+            Vector2 pelletDir = new Vector2(
+                Mathf.Cos(angle * Mathf.Deg2Rad),
+                Mathf.Sin(angle * Mathf.Deg2Rad)
+            );
+
+            Vector2 pelletTarget = start + pelletDir * baseDistance;
+
+            var bullet = Instantiate(bulletPrefab, uiCanvasRoot);
+            var rect = bullet.GetComponent<RectTransform>();
+            rect.anchoredPosition = start;
+
+            BulletManage bulletManage = bullet.GetComponent<BulletManage>();
+            if (bulletManage != null)
+            {
+                bulletManage.Initialize(pelletTarget, hit);
+            }
         }
     }
     #endregion
@@ -1129,20 +1162,30 @@ public class BattleManager : MonoBehaviour
             enemiesList.Add(null);
         }
 
-
-
         for (int i = 0; i < EndPoints.Count; i++)
         {
             Slider manaSlider = Markers[i].GetChild(0)?.GetComponent<Slider>();
 
             if (enemiesList[i] != null)
             {
-                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], enemiesList[i], Sliders[i], manaSlider));
+                GameObject ani = null;
+
+                if (Markers[i].childCount <= 2)
+                {
+                    // 슬라이더(0) + 다른 UI(1) + 새 애니만 붙어 있도록 정리
+                    ani = Instantiate(enemiesList[i].anime, Markers[i]);
+                }
+                else
+                {
+                    ani = Markers[i].GetChild(2).gameObject;
+                }
+
+                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], enemiesList[i], Sliders[i], manaSlider, ani));
                 Enemy_WithMarkers[i].marker.gameObject.SetActive(true);
             }
             else
             {
-                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], null, Sliders[i], manaSlider));
+                Enemy_WithMarkers.Add((Markers[i], EndPoints[i], null, Sliders[i], manaSlider, null));
             }
         }
 
@@ -1239,7 +1282,7 @@ public class BattleManager : MonoBehaviour
         if (enemy == null)
             return string.Empty;
 
-        return $"{enemy.Name}\nHP: {enemy.CurrentHp}/{enemy.HP} MP: {enemy.CurrentMp}/{enemy.MP}\nDistance: {enemy.Distance}";
+        return $"{enemy.Name}\nHP: {enemy.CurrentHp}/{enemy.HP} MP: {enemy.CurrentMp}/{enemy.MP}\n거리: {enemy.Distance}\n사격 데미지: {enemy.ShotAtk} 스피드: {enemy.Speed}\n인지: {enemy.Perception} 정신력: {enemy.WillPower}";
     }
 
     public string GetPlayerTooltip()
@@ -1326,7 +1369,8 @@ public class BattleManager : MonoBehaviour
                     entry.endpoint,
                     null,
                     entry.slider,
-                    entry.manaslider
+                    entry.manaslider,
+                    null
                 );
 
                 enemies[i] = null;  // 실제 적 리스트도 null 처리

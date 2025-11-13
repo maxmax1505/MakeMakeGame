@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public interface ICharacter
 {
     #region 여러가지 스탯
@@ -31,8 +32,13 @@ public interface ICharacter
     void Initialize(IGun gun);
     #endregion
 
+    #region 애니메이션 관련
+    GameObject anime { get; set; }
+    int animeIndex { get; set; }
+    #endregion
+
     int CharaterRunAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy);
-    (int DropWhat, int DropCount) DropItem {get; set;}
+    (int DropWhat, int DropCount) DropItem { get; set; }
 
     List<ISpell> SpellData { get; set; }
     Dictionary<MleeATKType, (bool Active, float weight)> SkillData { get; set; }
@@ -40,10 +46,11 @@ public interface ICharacter
     List<IMlee> ActiveSkills { get; set; }
 
     void SkillCheckMethod();
-    
+
 }
 
 [Serializable]
+
 
 //캐릭터 클래스들
 public class PlayerCharacter : ICharacter
@@ -98,10 +105,15 @@ public class PlayerCharacter : ICharacter
     }
     #endregion
 
+    #region 애니메이션 관련
+    public GameObject anime { get; set; }
+    public int animeIndex { get; set; }
+    #endregion
+
     [Header("스킬 데이터 : 액티브 상태 / 가중치")]
 
     //스킬데이터,스킬을 알고 있는지, 그 가중치는 얼마인지 써 있다.
-    public List<ISpell> SpellData { get; set; } = new() { new MagicSpellChart.Lightening() , new MagicSpellChart.MindShetter() };
+    public List<ISpell> SpellData { get; set; } = new() { new MagicSpellChart.Lightening(), new MagicSpellChart.MindShetter() };
     public Dictionary<MleeATKType, (bool Active, float weight)> SkillData { get; set; } = new()
     {
         { MleeATKType.PowerATK, (true, 2.0f) },
@@ -149,7 +161,7 @@ public class Monster1 : ICharacter
         //Distance = Mathf.Lerp(50f, 20f, risk);   // 고레벨일수록 더 가까운 거리에서 시작 등
     }
 
-    [Header("기본 수치들")]
+    #region 기본 수치들
 
     public string Name { get; set; } = "몬스터";
     public int Level { get; set; } = 1;
@@ -169,7 +181,7 @@ public class Monster1 : ICharacter
     public float base_Distance { get; set; } = 50;
     public float Perception { get; set; } = 10;
     public float base_Perception { get; set; } = 10;
-
+    #endregion
 
     public int CharaterRunAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy)
     {
@@ -195,18 +207,23 @@ public class Monster1 : ICharacter
         }
     }
 
-    public (int DropWhat, int DropCount) DropItem { get; set; } = new (1, 1) ;
+    public (int DropWhat, int DropCount) DropItem { get; set; } = new(1, 1);
 
-    [Header("장비 장착")]
+    #region 장비 장착
 
     public IGun EquipedGun { get; set; }
     public void EquipMethod(IGun gun)
     {
         EquipedGun = gun;
     }
+    #endregion
 
+    #region 애니메이션 관련
+    public GameObject anime { get; set; }
+    public int animeIndex { get; set; } = 0;
+    #endregion
 
-    [Header("스킬 데이터 : 액티브 상태 / 가중치")]
+    #region 스킬 데이터 : 액티브 상태 / 가중치
 
     //스킬데이터,스킬을 알고 있는지, 그 가중치는 얼마인지 써 있다.
     public List<ISpell> SpellData { get; set; } = new() { new MagicSpellChart.Lightening() };
@@ -230,13 +247,16 @@ public class Monster1 : ICharacter
             }
         }
     }
+    #endregion
 
-    public void Initialize (IGun gun)
+    public void Initialize(IGun gun)
     {
         EquipMethod(gun);
         SkillCheckMethod();
+        this.anime = AnimationList.enemyAnimations[this.animeIndex];
     }
 }
+
 
 
 

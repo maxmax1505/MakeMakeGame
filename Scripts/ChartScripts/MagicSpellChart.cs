@@ -9,7 +9,7 @@ public struct SpellContext
 {
     public ICharacter caster;
     public ICharacter Target;
-    public IReadOnlyList<(RectTransform marker, RectTransform endpoint, ICharacter enemy, Slider slider, Slider manaslider)> enemySlots;
+    public IReadOnlyList<(RectTransform marker, RectTransform endpoint, ICharacter enemy, Slider slider, Slider manaslider, GameObject animate)> enemySlots;
     public RectTransform PlayerMarker;
     public bool casterIsPlayer;
 }

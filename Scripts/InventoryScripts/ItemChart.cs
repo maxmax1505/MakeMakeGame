@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
+public enum GunType { Pistol, Shotgun, Sniper }
 
 public interface IItem
 {
@@ -13,6 +14,7 @@ public interface IItem
 public interface IGun
 {
     string Name { get; set; }
+    GunType gunType { get; set; }
     int ActionPoint { get; set; }
     int ShotCountPerTurn { get; set; }
     int ShotDamage { get; set; }
@@ -25,6 +27,7 @@ public interface IGun
 public class NormalPistol : IGun, IItem
 {
     public string Name { get; set; } = "Æò¹üÇÑ ±ÇÃÑ";
+    public GunType gunType { get; set; } = GunType.Pistol;
     public int ActionPoint { get; set; } = 6;
     public int ShotCountPerTurn { get; set; } = 3;
     public int ShotDamage { get; set; } = 1;
