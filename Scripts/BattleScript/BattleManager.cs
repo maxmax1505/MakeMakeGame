@@ -313,15 +313,34 @@ public class BattleManager : MonoBehaviour
     }
     public float CalcShotChance(ICharacter attacker, ICharacter defender)
     {
-        return 40 + attacker.EquipedGun.AimCorrection + attacker.Perception - (defender.Speed + defender.Perception / 2);
+        // 거리 기준 정규화 (필요한 방식에 맞게 조정)
+        float rawDistance = attacker.Distance + defender.Distance - MleeRange;
+        float normalized = Mathf.Clamp01(rawDistance / (gameMax - MleeRange));
+
+        // 기본 명중률 (공격자 정확도 - 방어자 회피)
+        float baseChance =
+            40f
+            + attacker.EquipedGun.AimCorrection
+            + attacker.Perception
+            - (defender.Speed + defender.Perception * 0.5f);
+
+        // 총기 프로필의 거리 곡선 적용
+        float hitCurve = attacker.EquipedGun.Profile.hitCurve.Evaluate(normalized);
+
+        return baseChance * hitCurve;
     }
     public void ShotDamageMethod(ICharacter attacker, ICharacter defender)
     {
+        // 거리 기준 정규화 (필요한 방식에 맞게 조정)
+        float rawDistance = attacker.Distance + defender.Distance - MleeRange;
+        float normalized = Mathf.Clamp01(rawDistance / (gameMax - MleeRange));
+        float DamageCurve = attacker.EquipedGun.Profile.damageCurve.Evaluate(normalized);
+
         float Damage;
 
         Damage = (attacker.EquipedGun.ShotDamage + attacker.ShotAtk) * PercFactor(attacker);
 
-        defender.CurrentHp -= Mathf.RoundToInt(Damage);
+        defender.CurrentHp -= Mathf.RoundToInt(Damage*DamageCurve);
     }
     public float PercFactor(ICharacter attacker)
     {
@@ -361,7 +380,7 @@ public class BattleManager : MonoBehaviour
 
                 ShotDamageMethod(attacker, defender);
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
-                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {ShotChance}");
+                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {Mathf.RoundToInt(ShotChance)}");
                 //FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
                 FireShotgun(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
                 Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.red;
@@ -371,7 +390,7 @@ public class BattleManager : MonoBehaviour
             }
             else
             {
-                TalkManager.Instance.ShowTemp($"{i}발째 : 감나빗! {attacker.Name}의 공격은 빗나갔다! 확률 : {ShotChance}");
+                TalkManager.Instance.ShowTemp($"{i}발째 : 감나빗! {attacker.Name}의 공격은 빗나갔다! 확률 : {Mathf.RoundToInt(ShotChance)}");
                 //FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, false);
                 FireShotgun(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, false);
 
@@ -382,7 +401,7 @@ public class BattleManager : MonoBehaviour
             Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.blue;
         }
 
-        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
+        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {Mathf.RoundToInt(ShotChance)} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
 
         if (defender.CurrentHp <= 0)
         {
@@ -416,7 +435,7 @@ public class BattleManager : MonoBehaviour
 
                 ShotDamageMethod(attacker, defender);
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
-                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {ShotChance}");
+                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {Mathf.RoundToInt(ShotChance)}");
                 FireBullet(Enemy_WithMarkers[currentEnemy].marker, minPoint, true);
                 minPoint.gameObject.GetComponent<Image>().color = Color.red;
                 PlayerSlider.value = (float)player.CurrentHp / player.HP;
@@ -425,7 +444,7 @@ public class BattleManager : MonoBehaviour
             }
             else
             {
-                TalkManager.Instance.ShowTemp($"{i}발째 : 감나빗! {attacker.Name}의 공격은 빗나갔다! 확률 : {ShotChance}");
+                TalkManager.Instance.ShowTemp($"{i}발째 : 감나빗! {attacker.Name}의 공격은 빗나갔다! 확률 : {Mathf.RoundToInt(ShotChance)}");
                 FireBullet(Enemy_WithMarkers[currentEnemy].marker, minPoint, false);
 
                 Debug.Log($"{i}발째 : 감나빗!");
@@ -435,7 +454,7 @@ public class BattleManager : MonoBehaviour
             minPoint.gameObject.GetComponent<Image>().color = Color.white;
         }
 
-        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
+        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {Mathf.RoundToInt(ShotChance)} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
 
     }
     public void FireBullet(RectTransform origin, RectTransform target, bool hit)
