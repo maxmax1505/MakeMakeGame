@@ -269,7 +269,7 @@ public class BattleManager : MonoBehaviour
             {
                 case 0:
 
-                    Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.white;
+                    Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.white;
                     yield return StartCoroutine(ShotTargetEnemySelect());
                     ShouldBeEnemy = Enemy_WithMarkers[TargetEnemy_Int].enemies;
 
@@ -308,7 +308,7 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.white;
+        Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.white;
         //yield return new WaitForSeconds(0.2f);
     }
     public float CalcShotChance(ICharacter attacker, ICharacter defender)
@@ -337,7 +337,7 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitUntil(() => buttonValueSelector.choiceButtonTrue);
 
-        Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.blue;
+        Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.blue;
     }
     public IEnumerator DoFuckingShotTheFAce(ICharacter attacker, ICharacter defender, int buttonclick)
     {
@@ -354,7 +354,7 @@ public class BattleManager : MonoBehaviour
         {
 
             float Randx = UnityEngine.Random.Range(0, 100);
-            Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.white;
+            Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.white;
             if (Randx <= ShotChance)
             {
                 HowManyShot++;
@@ -364,7 +364,7 @@ public class BattleManager : MonoBehaviour
                 TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {ShotChance}");
                 //FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
                 FireShotgun(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
-                Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.red;
+                Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.red;
                 Enemy_WithMarkers[TargetEnemy_Int].slider.value = (float)Enemy_WithMarkers[TargetEnemy_Int].enemies.CurrentHp / Enemy_WithMarkers[TargetEnemy_Int].enemies.HP;
 
                 Debug.Log($"{i}발째 : 명중!");
@@ -379,7 +379,7 @@ public class BattleManager : MonoBehaviour
             }
 
             yield return new WaitForSeconds(ShotRateSpeed);
-            Enemy_WithMarkers[TargetEnemy_Int].marker.gameObject.GetComponent<Image>().color = Color.blue;
+            Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.blue;
         }
 
         yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {ShotChance} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
@@ -988,6 +988,8 @@ public class BattleManager : MonoBehaviour
             yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 죽음에 이르는 피해를 입었다!");
         }
 
+        ShouldBeEnemy.Distance = MleeRange;
+
         DeathOfEnemy();
 
         //Enemy_WithMakers_RESTART(enemies);
@@ -1287,7 +1289,8 @@ public class BattleManager : MonoBehaviour
 
     public string GetPlayerTooltip()
     {
-        return $"{player.Name}\nHP: {player.CurrentHp}/{player.HP}\nDistance: {player.Distance}";
+        return $"{player.Name}\nHP: {player.CurrentHp}/{player.HP}\n거리: {player.Distance}\n사격 데미지: {player.ShotAtk} 스피드: {player.Speed}\n인지: {player.Perception} 정신력: {player.WillPower}";
+    
     }
     #endregion
 
@@ -1363,6 +1366,8 @@ public class BattleManager : MonoBehaviour
                         itemListItem.Get_ItemFromEnemy.Add(PG.GenerateRandomPart(enemy.Level));
                     }
                 }
+
+                Destroy(Enemy_WithMarkers[i].animate);
 
                 Enemy_WithMarkers[i] = (
                     entry.marker,

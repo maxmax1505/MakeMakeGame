@@ -88,9 +88,9 @@ public class MagicSpellChart : MonoBehaviour
                     for (int V = 0; V < 5; V++)
                     {
                         yield return new WaitForSeconds(0.05f);
-                        context.enemySlots[i].marker.gameObject.GetComponent<Image>().color = Color.blue;
+                        context.enemySlots[i].animate.GetComponent<Image>().color = Color.blue;
                         yield return new WaitForSeconds(0.05f);
-                        context.enemySlots[i].marker.gameObject.GetComponent<Image>().color = Color.white;
+                        context.enemySlots[i].animate.GetComponent<Image>().color = Color.white;
                     }
 
                 }
@@ -157,9 +157,9 @@ public class MagicSpellChart : MonoBehaviour
                     for (int V = 0; V < 5; V++)
                     {
                         yield return new WaitForSeconds(0.05f);
-                        context.enemySlots[i].marker.gameObject.GetComponent<Image>().color = Color.purple;
+                        context.enemySlots[i].animate.GetComponent<Image>().color = Color.purple;
                         yield return new WaitForSeconds(0.05f);
-                        context.enemySlots[i].marker.gameObject.GetComponent<Image>().color = Color.white;
+                        context.enemySlots[i].animate.GetComponent<Image>().color = Color.white;
                     }
 
                 }

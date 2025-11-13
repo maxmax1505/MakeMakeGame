@@ -58,8 +58,24 @@ public class SceneChanger : MonoBehaviour
     public void ClickToGoInventory()
     {
         CoreInventoryCanvas.gameObject.SetActive(true);
+        itemListItem.Refresh();
 
         PlanetCanvas.gameObject.SetActive(false);
+    }
+    public void WinToInventory()
+    {
+        WinCanvas.gameObject.SetActive(false);
+
+        CoreInventoryCanvas.gameObject.SetActive(true);
+        itemListItem.Refresh();
+    }
+    public void InventoryToDungeon()
+    {
+        CoreInventoryCanvas.gameObject.SetActive(false);
+
+        DungeonCanvas.gameObject.SetActive(true);
+
+        dungeonManager.NotInBattle = true;
     }
     public void BackToPlanetFromInven()
     {
