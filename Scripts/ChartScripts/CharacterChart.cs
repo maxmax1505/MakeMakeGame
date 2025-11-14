@@ -145,10 +145,10 @@ public class PlayerCharacter : ICharacter
 
 public class Monster1 : ICharacter
 {
-    public Monster1(IGun gun, int Lev, float risk)
+    public Monster1(int Lev, float risk)
     {
         this.Level = Lev;
-        Initialize(gun);
+        Initialize(new NormalPistol(risk));
         ApplyLevel(risk);
     }
     void ApplyLevel(float risk)

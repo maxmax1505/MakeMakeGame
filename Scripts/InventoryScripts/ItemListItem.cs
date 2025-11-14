@@ -65,7 +65,7 @@ public class ItemListItem : MonoBehaviour
     {
         Get_ItemFromEnemy = new List<IItem>();
         PlayerInventoryList = new List<IItem>();
-        PlayerEquippedList = new List<IItem> { new NormalPistol() };
+        PlayerEquippedList = new List<IItem> { new NormalShotgun(1) };
 
         Refresh();
     }

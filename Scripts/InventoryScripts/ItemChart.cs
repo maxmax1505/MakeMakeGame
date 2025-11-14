@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -31,15 +31,17 @@ public interface IGun
 }
 
 
-//ÃÑ±â Å¬·¡½ºµé
+//ì´ê¸° í´ë˜ìŠ¤ë“¤
 public class NormalPistol : IGun, IItem
 {
-    public NormalPistol()
+    public NormalPistol(float risk)
     {
         UpdatProfile();
+        ShotDamage = Mathf.RoundToInt(ShotDamage * (1f + risk * 1.0f));
+        AimCorrection = Mathf.RoundToInt(AimCorrection * (1f + risk * 2f)) ;
     }
 
-    public string Name { get; set; } = "Æò¹üÇÑ ±ÇÃÑ";
+    public string Name { get; set; } = "í‰ë²”í•œ ê¶Œì´";
     public GunType gunType { get; set; } = GunType.Pistol;
     public int ActionPoint { get; set; } = 6;
     public int ShotCountPerTurn { get; set; } = 3;
@@ -52,15 +54,15 @@ public class NormalPistol : IGun, IItem
     void UpdatProfile()
     {
         Profile.damageCurve = new AnimationCurve(
-        new Keyframe(0f, 0.6f), // ±Ù°Å¸®
-        new Keyframe(0.5f, 1.2f), // Áß°Å¸® ÃÖ°íÁ¡
-        new Keyframe(1f, 0.5f)  // Àå°Å¸®¿¡¼­ ´Ù½Ã ÇÏ¶ô
+        new Keyframe(0f, 0.6f), // ê·¼ê±°ë¦¬
+        new Keyframe(0.5f, 1.2f), // ì¤‘ê±°ë¦¬ ìµœê³ ì 
+        new Keyframe(1f, 0.5f)  // ì¥ê±°ë¦¬ì—ì„œ ë‹¤ì‹œ í•˜ë½
         );
 
         Profile.hitCurve = new AnimationCurve(
-        new Keyframe(0f, 0.6f), // ±Ù°Å¸®
-        new Keyframe(0.5f, 1.2f), // Áß°Å¸® ÃÖ°íÁ¡
-        new Keyframe(1f, 0.5f)  // Àå°Å¸®¿¡¼­ ´Ù½Ã ÇÏ¶ô
+        new Keyframe(0f, 0.6f), // ê·¼ê±°ë¦¬
+        new Keyframe(0.5f, 1.2f), // ì¤‘ê±°ë¦¬ ìµœê³ ì 
+        new Keyframe(1f, 0.5f)  // ì¥ê±°ë¦¬ì—ì„œ ë‹¤ì‹œ í•˜ë½
         );
     }
 
@@ -75,12 +77,14 @@ public class NormalPistol : IGun, IItem
 
 public class NormalShotgun : IGun, IItem
 {
-    public NormalShotgun()
+    public NormalShotgun(float risk)
     {
         UpdatProfile();
+        ShotDamage = Mathf.RoundToInt(ShotDamage * (1f + risk * 2.0f));
+        AimCorrection = Mathf.RoundToInt(AimCorrection * (1f + risk * 0.8f));
     }
 
-    public string Name { get; set; } = "Æò¹üÇÑ ¼¦°Ç";
+    public string Name { get; set; } = "í‰ë²”í•œ ìƒ·ê±´";
     public GunType gunType { get; set; } = GunType.Shotgun;
     public int ActionPoint { get; set; } = 6;
     public int ShotCountPerTurn { get; set; } = 1;
@@ -93,15 +97,15 @@ public class NormalShotgun : IGun, IItem
     void UpdatProfile()
     {
         Profile.damageCurve = new AnimationCurve(
-        new Keyframe(0f, 2.0f), // ±Ù°Å¸®
-        new Keyframe(0.5f, 0.7f), // Áß°Å¸® ÃÖ°íÁ¡
-        new Keyframe(1f, 0.2f)  // Àå°Å¸®¿¡¼­ ´Ù½Ã ÇÏ¶ô
+        new Keyframe(0f, 2.0f), // ê·¼ê±°ë¦¬
+        new Keyframe(0.5f, 0.5f), // ì¤‘ê±°ë¦¬ ìµœê³ ì 
+        new Keyframe(1f, 0.2f)  // ì¥ê±°ë¦¬ì—ì„œ ë‹¤ì‹œ í•˜ë½
         );
 
         Profile.hitCurve = new AnimationCurve(
-        new Keyframe(0f, 1.2f), // ±Ù°Å¸®
-        new Keyframe(0.5f, 1.0f), // Áß°Å¸® ÃÖ°íÁ¡
-        new Keyframe(1f, 0.2f)  // Àå°Å¸®¿¡¼­ ´Ù½Ã ÇÏ¶ô
+        new Keyframe(0f, 1.2f), // ê·¼ê±°ë¦¬
+        new Keyframe(0.5f, 0.7f), // ì¤‘ê±°ë¦¬ ìµœê³ ì 
+        new Keyframe(1f, 0.2f)  // ì¥ê±°ë¦¬ì—ì„œ ë‹¤ì‹œ í•˜ë½
         );
     }
 

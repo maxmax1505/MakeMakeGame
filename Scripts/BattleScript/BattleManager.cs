@@ -100,13 +100,13 @@ public class BattleManager : MonoBehaviour
     {
         //테스트용
 
-        guns = new List<IGun> { new NormalPistol(), new NormalShotgun() };
+        guns = new List<IGun> { new NormalPistol(1), new NormalShotgun(1) };
         //Debug.Log(guns[0].Name);
         
         //enemies = new List<ICharacter> { new Monster1(guns[0], monLev, riSK), new Monster1(guns[0], monLev, riSK) };
         //IfNameSame();
 
-        player = new PlayerCharacter(guns[0]);
+        player = new PlayerCharacter(guns[1]);
         itemListItem.Update_StatUI();
         FuckYouFuckYou = true;
 
