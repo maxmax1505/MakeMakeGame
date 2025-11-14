@@ -10,8 +10,6 @@ public class TalkManager : MonoBehaviour
 
     public static TalkManager Instance;
 
-    //이 위로는 변경하면 못고침요. chatgpt 배낌
-
     int testnum = 0;
 
     public static int Currenttalk = 1;
@@ -32,7 +30,7 @@ public class TalkManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;               // 이 오브젝트를 전역 인스턴스로 등록
-            DontDestroyOnLoad(gameObject); // (선택사항) 씬 전환에도 유지
+            //DontDestroyOnLoad(gameObject); // (선택사항) 씬 전환에도 유지
         }
         else
         {

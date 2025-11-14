@@ -157,6 +157,7 @@ public class Monster1 : ICharacter
         MP = CurrentMp = Mathf.RoundToInt(MP * (1f + risk * 1.5f));
         ShotAtk = base_ShotAtk * (1f + risk * 1.2f);
         Speed = base_Speed * (1f + risk * 0.8f);
+        Perception = base_Perception * (1f + risk * 1.0f);
         WillPower = 3f + risk * 2f;
         //Distance = Mathf.Lerp(50f, 20f, risk);   // 고레벨일수록 더 가까운 거리에서 시작 등
     }

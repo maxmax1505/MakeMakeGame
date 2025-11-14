@@ -100,7 +100,7 @@ public class BattleManager : MonoBehaviour
     {
         //테스트용
 
-        guns = new List<IGun> { new NormalPistol() };
+        guns = new List<IGun> { new NormalPistol(), new NormalShotgun() };
         //Debug.Log(guns[0].Name);
         
         //enemies = new List<ICharacter> { new Monster1(guns[0], monLev, riSK), new Monster1(guns[0], monLev, riSK) };
@@ -381,8 +381,7 @@ public class BattleManager : MonoBehaviour
                 ShotDamageMethod(attacker, defender);
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
                 TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {Mathf.RoundToInt(ShotChance)}");
-                //FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
-                FireShotgun(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true);
+                FireEffect(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true, attacker);
                 Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.red;
                 Enemy_WithMarkers[TargetEnemy_Int].slider.value = (float)Enemy_WithMarkers[TargetEnemy_Int].enemies.CurrentHp / Enemy_WithMarkers[TargetEnemy_Int].enemies.HP;
 
@@ -391,8 +390,7 @@ public class BattleManager : MonoBehaviour
             else
             {
                 TalkManager.Instance.ShowTemp($"{i}발째 : 감나빗! {attacker.Name}의 공격은 빗나갔다! 확률 : {Mathf.RoundToInt(ShotChance)}");
-                //FireBullet(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, false);
-                FireShotgun(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, false);
+                FireEffect(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, false, attacker);
 
                 Debug.Log($"{i}발째 : 감나빗!");
             }
@@ -436,7 +434,7 @@ public class BattleManager : MonoBehaviour
                 ShotDamageMethod(attacker, defender);
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
                 TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {Mathf.RoundToInt(ShotChance)}");
-                FireBullet(Enemy_WithMarkers[currentEnemy].marker, minPoint, true);
+                FireEffect(Enemy_WithMarkers[currentEnemy].marker, minPoint, true, attacker);
                 minPoint.gameObject.GetComponent<Image>().color = Color.red;
                 PlayerSlider.value = (float)player.CurrentHp / player.HP;
 
@@ -445,7 +443,7 @@ public class BattleManager : MonoBehaviour
             else
             {
                 TalkManager.Instance.ShowTemp($"{i}발째 : 감나빗! {attacker.Name}의 공격은 빗나갔다! 확률 : {Mathf.RoundToInt(ShotChance)}");
-                FireBullet(Enemy_WithMarkers[currentEnemy].marker, minPoint, false);
+                FireEffect(Enemy_WithMarkers[currentEnemy].marker, minPoint, false, attacker);
 
                 Debug.Log($"{i}발째 : 감나빗!");
             }
@@ -456,6 +454,21 @@ public class BattleManager : MonoBehaviour
 
         yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {Mathf.RoundToInt(ShotChance)} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
 
+    }
+    #region 총알발사 UI
+    public void FireEffect(RectTransform origin, RectTransform target, bool hit, ICharacter attacker)
+    {
+        switch (attacker.EquipedGun.gunType)
+        {
+
+            case GunType.Pistol:
+                FireBullet(origin, target, hit);
+                break;
+
+            case GunType.Shotgun:
+                FireShotgun(origin, target, hit);
+                break;
+        }
     }
     public void FireBullet(RectTransform origin, RectTransform target, bool hit)
     {
@@ -475,8 +488,7 @@ public class BattleManager : MonoBehaviour
             bulletManage.Initialize(target.anchoredPosition, hit);
         }
     }
-
-    void FireShotgun(RectTransform origin, RectTransform target, bool hit, int pelletCount = 6, float spreadAngle = 6f)
+    public void FireShotgun(RectTransform origin, RectTransform target, bool hit, int pelletCount = 6, float spreadAngle = 6f)
     {
         Vector2 start = origin.anchoredPosition;
         Vector2 dir = (target.anchoredPosition - start).normalized;
@@ -506,6 +518,8 @@ public class BattleManager : MonoBehaviour
             }
         }
     }
+    #endregion
+
     #endregion
 
     #region 이동 페이즈
