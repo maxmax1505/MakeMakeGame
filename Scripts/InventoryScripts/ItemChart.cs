@@ -72,3 +72,44 @@ public class NormalPistol : IGun, IItem
     };
     public IReadOnlyList<StatModifier> Modifiers => modifiers;
 }
+
+public class NormalShotgun : IGun, IItem
+{
+    public NormalShotgun()
+    {
+        UpdatProfile();
+    }
+
+    public string Name { get; set; } = "평범한 샷건";
+    public GunType gunType { get; set; } = GunType.Shotgun;
+    public int ActionPoint { get; set; } = 6;
+    public int ShotCountPerTurn { get; set; } = 1;
+    public int ShotDamage { get; set; } = 2;
+    public float AimCorrection { get; set; } = 10;
+    public ItemType itemType { get; set; } = ItemType.Gun;
+    public string itemInformation { get; set; }
+
+    public GunProfile Profile { get; private set; } = new GunProfile();
+    void UpdatProfile()
+    {
+        Profile.damageCurve = new AnimationCurve(
+        new Keyframe(0f, 2.0f), // 근거리
+        new Keyframe(0.5f, 0.7f), // 중거리 최고점
+        new Keyframe(1f, 0.2f)  // 장거리에서 다시 하락
+        );
+
+        Profile.hitCurve = new AnimationCurve(
+        new Keyframe(0f, 1.2f), // 근거리
+        new Keyframe(0.5f, 1.0f), // 중거리 최고점
+        new Keyframe(1f, 0.2f)  // 장거리에서 다시 하락
+        );
+    }
+
+    static readonly StatModifier[] modifiers =
+    {
+        new StatModifier { statType = StatId.ShotDamage,  value = +5 },
+        new StatModifier { statType = StatId.Hp, value = +3 },
+        new StatModifier { statType = StatId.Speed, value =  -2 }
+    };
+    public IReadOnlyList<StatModifier> Modifiers => modifiers;
+}

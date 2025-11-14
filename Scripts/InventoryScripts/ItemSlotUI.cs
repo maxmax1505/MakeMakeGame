@@ -39,7 +39,11 @@ public class ItemSlotUI : MonoBehaviour
         }
 
         slotButton.onClick.RemoveAllListeners();
-        slotButton.onClick.AddListener(() => owner.UnEqquip(item, slotObject));// 이거 채워야함 ~~
+        if (item is IGun) { }
+        else
+        {
+            slotButton.onClick.AddListener(() => owner.UnEqquip(item, slotObject));// 이거 채워야함 ~~
+        }
     }
 
     public void Bind_Inventory(IItem item, Button slotButton, GameObject slotObject)

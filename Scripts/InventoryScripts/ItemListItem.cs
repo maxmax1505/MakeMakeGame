@@ -166,6 +166,18 @@ public class ItemListItem : MonoBehaviour
         if (item == null || slotObject == null) return;
 
         PlayerInventoryList.Remove(item);
+
+        if (item is IGun)
+        {
+            for (int i = 0; i < PlayerEquippedList.Count; i++)
+            {
+                if (PlayerEquippedList[i] is IGun)
+                {
+                    PlayerInventoryList.Add(PlayerEquippedList[i]);
+                }
+            }
+        }
+
         PlayerEquippedList.Add(item);
 
         if (slotNumberLookup.TryGetValue(item.itemType, out var counter))
@@ -181,6 +193,15 @@ public class ItemListItem : MonoBehaviour
         {
             battleManager.ApplyModifiers(bodyPart.bonuses, true);
             battleManager.ApplyModifiers(bodyPart.penalties, true);
+        }
+        else if (item is IGun gun)
+        {
+           
+            PlayerEquippedList.RemoveAll(item => item is IGun);
+            PlayerEquippedList.Add(item);
+
+            battleManager.PlayerEqquipGun(gun);
+            battleManager.ApplyModifiers(gun.Modifiers, true);
         }
 
         Refresh();

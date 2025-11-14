@@ -1353,6 +1353,11 @@ public class BattleManager : MonoBehaviour
             }
         }
     }
+    public void PlayerEqquipGun(IGun gun)
+    {
+        ApplyModifiers(player.EquipedGun.Modifiers, false);
+        player.EquipedGun = gun;
+    }
     public string PlayerStat()
     {
         string playerstat;
