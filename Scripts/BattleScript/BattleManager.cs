@@ -16,6 +16,7 @@ public class BattleManager : MonoBehaviour
     public BodyPartGenerator PG;
     public SceneChanger sceneChanger;
     public UniversManager universManager;
+    public DungeonManager dungeonManager;
 
     [SerializeField] RectTransform uiCanvasRoot;
     [SerializeField] GameObject bulletPrefab;
@@ -30,6 +31,9 @@ public class BattleManager : MonoBehaviour
     public static int TargetEnemy_Int;
     bool IsFirstRun = true;
 
+    /// <summary>
+    /// 로딩중에 꼬여서 임시로 만든거
+    /// </summary>
     public bool FuckYouFuckYou = false;
 
     public int CurrentMovingEnemy_int;
@@ -46,6 +50,9 @@ public class BattleManager : MonoBehaviour
     public TextMeshProUGUI ApText;
 
     public float gameMin = 0f;       // enemires[].distance의 선형 보간을 위한 수, 최소 distance
+    /// <summary>
+    /// 최대 거리
+    /// </summary>
     [SerializeField] public static float gameMax = 250f;     // enemires[].distance의 선형 보간을 위한 수, 최대 distance
 
     public enum MoveIntent { Advance = 0, Keep = 1, Retreat = 2 }
@@ -107,8 +114,11 @@ public class BattleManager : MonoBehaviour
         //IfNameSame();
 
         player = new PlayerCharacter(guns[1]);
+        ApplyModifiers(guns[1].Modifiers, true);
+        player.CurrentHp = player.HP;
         itemListItem.Update_StatUI();
         FuckYouFuckYou = true;
+        dungeonManager.DungeonPlayer = player;
 
         //Enemy_WithMakers_RESTART(enemies);
 
@@ -147,6 +157,7 @@ public class BattleManager : MonoBehaviour
             // 1) 플레이어 턴 (입력 대기)
             player.CurrentAp = player.AP;
             Update_ApSlider();
+            Update_HpSlider();
 
             for (int i = 0; i < Enemy_WithMarkers.Count; i++)
             {
@@ -226,9 +237,10 @@ public class BattleManager : MonoBehaviour
             //if (battleEnd) break;
 
 
-            // 3) 승패 판정
-            if (/* 모두 처치 */ false) { Debug.Log("Victory"); ISPlayerNotInBattle = true; }
-            if (/* 전원 사망 */ false) { Debug.Log("Defeat"); ISPlayerNotInBattle = true; }
+            /* 3) 승패 판정
+            if ( 모두 처치  false) { Debug.Log("Victory"); ISPlayerNotInBattle = true; }
+            if ( 전원 사망  false) { Debug.Log("Defeat"); ISPlayerNotInBattle = true; }
+            */
 
             // 템포 조절(선택)
             yield return null;
@@ -1265,6 +1277,10 @@ public class BattleManager : MonoBehaviour
         ApSlider.value = Mathf.InverseLerp(0, player.AP, player.CurrentAp);
         ApText.text = $"{player.CurrentAp}/{player.AP}";
     }
+    public void Update_HpSlider()
+    {
+        PlayerSlider.value = Mathf.InverseLerp(0 , player.HP, (float)player.CurrentHp);
+    }
     public void IfNameSame()
     {
         string[] suffixes = { " A", " B", " C", " D", " E", " F", " G", " H" };
@@ -1394,7 +1410,10 @@ public class BattleManager : MonoBehaviour
             {
                 if (enemy.EquipedGun is IItem thisGun)
                 {
-                    itemListItem.Get_ItemFromEnemy.Add(thisGun);
+                    if (UnityEngine.Random.value < 0.3f)
+                    {
+                        itemListItem.Get_ItemFromEnemy.Add(thisGun);
+                    }
                 }
 
                 if(enemy.DropItem.DropWhat == 1)

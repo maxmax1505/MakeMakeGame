@@ -71,7 +71,7 @@ public class PlayerCharacter : ICharacter
     [Header("기본 수치들")]
     public string Name { get; set; } = "당신";
     public int Level { get; set; } = 1;
-    public int HP { get; set; } = 10;
+    public int HP { get; set; } = 30;
     public int CurrentHp { get; set; } = 10;
     public int MP { get; set; } = 10;
     public int CurrentMp { get; set; } = 10;
@@ -159,6 +159,7 @@ public class Monster1 : ICharacter
         Speed = base_Speed * (1f + risk * 0.8f);
         Perception = base_Perception * (1f + risk * 1.0f);
         WillPower = 3f + risk * 2f;
+        Distance = UnityEngine.Random.Range(70, 151);
         //Distance = Mathf.Lerp(50f, 20f, risk);   // 고레벨일수록 더 가까운 거리에서 시작 등
     }
 
