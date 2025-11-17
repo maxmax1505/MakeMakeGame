@@ -39,8 +39,8 @@ public class SlotStatPool
     [Header("디버프 가능한 스탯")]
     public StatId[] debuffStats;
 
-    public AnimationCurve buffCurve = AnimationCurve.Linear(0, 2, 1, 12);
-    public AnimationCurve debuffCurve = AnimationCurve.Linear(0, 1, 1, 8);
+    public AnimationCurve buffCurve = AnimationCurve.Linear(0, 1, 1, 100);
+    public AnimationCurve debuffCurve = AnimationCurve.Linear(0, 1, 1, 100);
 }
 
 
@@ -94,13 +94,13 @@ public class BodyPartGenerator : MonoBehaviour
 
     public BodyPart GenerateRandomPart(int Lev)
     {
-        float risk = universManager.ComputeRisk(Lev);
+        //float risk = universManager.ComputeRisk(Lev);
 
         BodyPartSlot slot = (BodyPartSlot)UnityEngine.Random.Range(0, 4);
         SlotStatPool pool = slotPools[(int)slot];
 
-        var buff = CreateModifier(pool, risk, isBuff: true);
-        var debuff = CreateModifier(pool, risk, isBuff: false);
+        var buff = CreateModifier(pool, Lev, isBuff: true);
+        var debuff = CreateModifier(pool, Lev, isBuff: false);
 
         return new BodyPart
         {
@@ -164,11 +164,24 @@ public class BodyPartGenerator : MonoBehaviour
 
     StatModifier CreateModifier(SlotStatPool pool, float risk, bool isBuff)
     {
+        Dictionary<StatId, float> statScaling = new()
+        {
+            { StatId.Hp, 5f },          // 최소 +5 단위
+            { StatId.ShotDamage, 1f },  // 최소 +1 단위
+            { StatId.Speed, 1f },     // 예: 0.5 단위
+            { StatId.Crit, 1f },
+            { StatId.Mp, 3f },
+            { StatId.Perseption, 1f },
+            { StatId.CritResist, 1f },
+            
+        };
+
         StatId[] candidates = isBuff ? pool.buffStats : pool.debuffStats;
         StatId stat = candidates[UnityEngine.Random.Range(0, candidates.Length)];
 
         AnimationCurve curve = isBuff ? pool.buffCurve : pool.debuffCurve;
-        int value = Mathf.RoundToInt(curve.Evaluate(risk));
+        float RV = UnityEngine.Random.Range(0.5f, 1.5f);
+        int value = Mathf.RoundToInt(curve.Evaluate(risk)*statScaling[stat]*RV);
         if (!isBuff) value = -Mathf.Abs(value);
 
         return new StatModifier

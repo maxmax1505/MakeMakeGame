@@ -22,10 +22,10 @@ public interface IGun
 {
     string Name { get; set; }
     GunType gunType { get; set; }
-    int ActionPoint { get; set; }
     int ShotCountPerTurn { get; set; }
     int ShotDamage { get; set; }
     float AimCorrection { get; set; }
+    float CritMultiply { get; set; }
     GunProfile Profile { get; }
     IReadOnlyList<StatModifier> Modifiers { get; }
 }
@@ -34,19 +34,17 @@ public interface IGun
 //총기 클래스들
 public class NormalPistol : IGun, IItem
 {
-    public NormalPistol(float risk)
+    public NormalPistol()
     {
         UpdatProfile();
-        ShotDamage = Mathf.RoundToInt(ShotDamage * (1f + risk * 1.0f));
-        AimCorrection = Mathf.RoundToInt(AimCorrection * (1f + risk * 2f)) ;
     }
 
     public string Name { get; set; } = "평범한 권총";
     public GunType gunType { get; set; } = GunType.Pistol;
-    public int ActionPoint { get; set; } = 6;
     public int ShotCountPerTurn { get; set; } = 3;
     public int ShotDamage { get; set; } = 1;
     public float AimCorrection { get; set; } = 10;
+    public float CritMultiply { get; set; } = 1.5f;
     public ItemType itemType { get; set; } = ItemType.Gun;
     public string itemInformation { get; set; }
 
@@ -77,19 +75,17 @@ public class NormalPistol : IGun, IItem
 
 public class NormalShotgun : IGun, IItem
 {
-    public NormalShotgun(float risk)
+    public NormalShotgun()
     {
         UpdatProfile();
-        ShotDamage = Mathf.RoundToInt(ShotDamage * (1f + risk * 2.0f));
-        AimCorrection = Mathf.RoundToInt(AimCorrection * (1f + risk * 0.8f));
     }
 
     public string Name { get; set; } = "평범한 샷건";
     public GunType gunType { get; set; } = GunType.Shotgun;
-    public int ActionPoint { get; set; } = 6;
     public int ShotCountPerTurn { get; set; } = 1;
     public int ShotDamage { get; set; } = 2;
     public float AimCorrection { get; set; } = 10;
+    public float CritMultiply { get; set; } = 2.0f;
     public ItemType itemType { get; set; } = ItemType.Gun;
     public string itemInformation { get; set; }
 
@@ -113,7 +109,8 @@ public class NormalShotgun : IGun, IItem
     {
         new StatModifier { statType = StatId.ShotDamage,  value = +5 },
         new StatModifier { statType = StatId.Hp, value = +3 },
-        new StatModifier { statType = StatId.Speed, value =  -2 }
+        new StatModifier { statType = StatId.Speed, value =  -2 },
+        new StatModifier { statType = StatId.Crit, value = -5 }
     };
     public IReadOnlyList<StatModifier> Modifiers => modifiers;
 }

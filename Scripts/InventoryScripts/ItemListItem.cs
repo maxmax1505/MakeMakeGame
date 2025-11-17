@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 
 public enum ItemType { Gun, Head, Leg, Body, Arm }
-public enum StatId { Hp, Speed, Perseption, Mp, ShotDamage }
+public enum StatId { Hp, Speed, Perseption, Mp, ShotDamage, Crit, CritResist }
 
 
 public class ItemListItem : MonoBehaviour
@@ -15,7 +15,9 @@ public class ItemListItem : MonoBehaviour
         StatId.Speed => "스피드",
         StatId.Hp => "체력",
         StatId.ShotDamage => "사격 데미지",
-        StatId.Perseption => "인지",
+        StatId.Perseption => "명중률",
+        StatId.Crit => "치명타율",
+        StatId.CritResist => "치명저항",
         StatId.Mp => "마력",
         _ => stat.ToString()
     };
@@ -64,8 +66,8 @@ public class ItemListItem : MonoBehaviour
     void Start()
     {
         Get_ItemFromEnemy = new List<IItem>();
-        PlayerInventoryList = new List<IItem>();
-        PlayerEquippedList = new List<IItem> { new NormalShotgun(1) };
+        PlayerInventoryList = new List<IItem> { PG.GenerateRandomPart(1), PG.GenerateRandomPart(5), PG.GenerateRandomPart(10), PG.GenerateRandomPart(50), PG.GenerateRandomPart(100) };
+        PlayerEquippedList = new List<IItem> { new NormalShotgun() };
 
         Refresh();
     }

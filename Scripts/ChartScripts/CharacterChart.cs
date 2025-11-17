@@ -8,6 +8,7 @@ public interface ICharacter
     #region 여러가지 스탯
     string Name { get; set; }
     int Level { get; set; }
+    int DropitemLV { get; set; }
     int HP { get; set; }
     int CurrentHp { get; set; }
     int MP { get; set; }
@@ -24,6 +25,10 @@ public interface ICharacter
     float base_Distance { get; set; }
     float Perception { get; set; }
     float base_Perception { get; set; }
+    float Crit { get; set; }
+    float base_Crit { get; set; }
+    float CritResist { get; set; }
+    float base_CritResist { get; set; }
     #endregion
 
     #region 총 관련
@@ -71,6 +76,7 @@ public class PlayerCharacter : ICharacter
     [Header("기본 수치들")]
     public string Name { get; set; } = "당신";
     public int Level { get; set; } = 1;
+    public int DropitemLV { get; set; }
     public int HP { get; set; } = 30;
     public int CurrentHp { get; set; } = 10;
     public int MP { get; set; } = 10;
@@ -87,6 +93,11 @@ public class PlayerCharacter : ICharacter
     public float base_Distance { get; set; } = 0;
     public float Perception { get; set; } = 10;
     public float base_Perception { get; set; } = 10;
+    public float Crit { get; set; } = 10;
+    public float base_Crit { get; set; } = 10;
+    public float CritResist { get; set; } = 10;
+    public float base_CritResist { get; set; } = 10;
+
     #endregion
 
     public int CharaterRunAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy)
@@ -145,28 +156,38 @@ public class PlayerCharacter : ICharacter
 
 public class Monster1 : ICharacter
 {
-    public Monster1(int Lev, float risk)
+    public Monster1()
     {
-        this.Level = Lev;
-        Initialize(new NormalPistol(risk));
-        ApplyLevel(risk);
+        Initialize(new NormalPistol());
+        DropitemLV = UnityEngine.Random.Range(1, 6);
+        Debug.Log(DropitemLV);
+        Distance = UnityEngine.Random.Range(70, 151);
     }
+    float Round(float value, int decimals = 2)
+    {
+        float factor = Mathf.Pow(10f, decimals);
+        return Mathf.Round(value * factor) / factor;
+    }
+    /*
     void ApplyLevel(float risk)
     {
         HP = CurrentHp = Mathf.RoundToInt(HP * (1f + risk * 0.1f));
-        MP = CurrentMp = Mathf.RoundToInt(MP * (1f + risk * 1.5f));
-        ShotAtk = base_ShotAtk * (1f + risk * 1.2f);
-        Speed = base_Speed * (1f + risk * 0.8f);
-        Perception = base_Perception * (1f + risk * 1.0f);
-        WillPower = 3f + risk * 2f;
+        MP = CurrentMp = Mathf.RoundToInt(MP * (1f + risk * 0.15f));
+        ShotAtk = Round(base_ShotAtk * (1f + risk * 0.12f));
+        Speed = base_Speed * (1f + risk * 0.08f); //round를 모두 적용할것
+        Perception = base_Perception * (1f + risk * 0.10f);
+        Crit = base_Crit * (1f + risk * 0.12f);
+        CritResist = base_CritResist * (1f + risk * 0.10f);
+        WillPower = 3f + risk * 0.2f;
         Distance = UnityEngine.Random.Range(70, 151);
         //Distance = Mathf.Lerp(50f, 20f, risk);   // 고레벨일수록 더 가까운 거리에서 시작 등
     }
-
+    */
     #region 기본 수치들
 
     public string Name { get; set; } = "몬스터";
     public int Level { get; set; } = 1;
+    public int DropitemLV { get; set; }
     public int HP { get; set; } = 10;
     public int CurrentHp { get; set; } = 10;
     public int MP { get; set; } = 10;
@@ -183,6 +204,11 @@ public class Monster1 : ICharacter
     public float base_Distance { get; set; } = 50;
     public float Perception { get; set; } = 10;
     public float base_Perception { get; set; } = 10;
+    public float Crit { get; set; } = 10;
+    public float base_Crit { get; set; } = 10;
+    public float CritResist { get; set; } = 10;
+    public float base_CritResist { get; set; } = 10;
+
     #endregion
 
     public int CharaterRunAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy)

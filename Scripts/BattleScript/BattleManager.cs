@@ -107,7 +107,7 @@ public class BattleManager : MonoBehaviour
     {
         //테스트용
 
-        guns = new List<IGun> { new NormalPistol(1), new NormalShotgun(1) };
+        guns = new List<IGun> { new NormalPistol(), new NormalShotgun() };
         //Debug.Log(guns[0].Name);
         
         //enemies = new List<ICharacter> { new Monster1(guns[0], monLev, riSK), new Monster1(guns[0], monLev, riSK) };
@@ -350,13 +350,32 @@ public class BattleManager : MonoBehaviour
 
         float Damage;
 
-        Damage = (attacker.EquipedGun.ShotDamage + attacker.ShotAtk) * PercFactor(attacker);
+        float CritM = 1;
+        bool isCritHit = RollCriticalHit(attacker, defender);
+        if (isCritHit == true) { CritM = attacker.EquipedGun.CritMultiply; }
+        Damage = (attacker.EquipedGun.ShotDamage + attacker.ShotAtk) * CritM;
 
         defender.CurrentHp -= Mathf.RoundToInt(Damage*DamageCurve);
     }
+    /*
     public float PercFactor(ICharacter attacker)
     {
         return 1f + (attacker.Perception - 10) * 0.04f; // 지각이 10일 때 1.0
+    }
+    */
+    /// <summary>
+    /// 공격자/방어자의 치명타 관련 스탯을 사용해 치명타 여부를 판정한다.
+    /// </summary>
+    public bool RollCriticalHit(ICharacter attacker, ICharacter defender)
+    {
+        float attCrit = Mathf.Max(1f, attacker.Crit);   // 최소값 보호
+        float defCrit = Mathf.Max(1f, defender.CritResist);
+
+        float ratio = attCrit / defCrit;               // 두 배라면 ratio=2
+        float chance = 0.2f + (ratio - 1f) * 0.4f;     // ratio=1 → 0.2, ratio=2 → 0.9
+        chance = Mathf.Clamp(chance, 0.05f, 0.5f);    // 지나친 극단값 방지
+
+        return UnityEngine.Random.value < chance;
     }
     public IEnumerator ShotTargetEnemySelect()
     {
@@ -803,7 +822,11 @@ public class BattleManager : MonoBehaviour
     }
     public float CalcSpeedChance(ICharacter p, ICharacter e, int keep)
     {
-        return 50 + (p.Speed - e.Speed) * 10 + keep * 20;
+        float ratio = Mathf.Clamp((p.Speed + 0.1f) / (e.Speed + 0.1f), 0.5f, 2f);
+        float normalized = (ratio - 1f) / 1f;                // 0.5→-0.5, 2→+1
+        float baseChance = 50f + normalized * 30f;           // 20~80 범위
+        baseChance += keep * 10f;
+        return Mathf.Clamp(baseChance, 20f, 80f);
     }
     public float CalcDistance(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy, MoveCaseNine moveCaseNine)
     {
@@ -811,11 +834,21 @@ public class BattleManager : MonoBehaviour
         t = Mathf.Pow(t, 0.5f); // 뒷 인자로 곡선 휘기 (감마 스케일)
         float multiplier = Mathf.Lerp(1f, 2f, t); //최종 감마 보정치 1배에서 최종 2배까지 보정한다는 뜻
 
+        float DisMax(float distancePM)
+        {
+            float minStep = gameMax / 10f;
+            float maxStep = gameMax / 3f;
+
+            float step = Mathf.Clamp(distancePM, minStep, maxStep); // t=0이면 1/6, t=1이면 1/3
+
+            return step;
+        }
+
         switch (moveCaseNine)
         {
             case MoveCaseNine.pAeA: //더블 거리 좁힘
 
-                ShouldBeEnemy.Distance -= (ShouldBePlayer.Speed + ShouldBeEnemy.Speed) * multiplier;
+                ShouldBeEnemy.Distance -= DisMax((ShouldBePlayer.Speed + ShouldBeEnemy.Speed) * multiplier);
 
                 break;
 
@@ -825,31 +858,31 @@ public class BattleManager : MonoBehaviour
 
             case MoveCaseNine.pReR: //더블 거리 벌림
 
-                ShouldBeEnemy.Distance += (ShouldBePlayer.Speed + ShouldBeEnemy.Speed) * multiplier;
+                ShouldBeEnemy.Distance += DisMax((ShouldBePlayer.Speed + ShouldBeEnemy.Speed) * multiplier);
 
                 break;
 
             case MoveCaseNine.pA: //(내가) 거리 좁힘
 
-                ShouldBeEnemy.Distance -= ShouldBePlayer.Speed * multiplier;
+                ShouldBeEnemy.Distance -= DisMax(ShouldBePlayer.Speed * multiplier);
 
                 break;
 
             case MoveCaseNine.pR: //(내가) 거리 벌림
 
-                ShouldBeEnemy.Distance += ShouldBePlayer.Speed * multiplier;
+                ShouldBeEnemy.Distance += DisMax(ShouldBePlayer.Speed * multiplier);
 
                 break;
 
             case MoveCaseNine.eA: //(상대가) 거리 좁힘
 
-                ShouldBeEnemy.Distance -= ShouldBeEnemy.Speed * multiplier;
+                ShouldBeEnemy.Distance -= DisMax(ShouldBeEnemy.Speed * multiplier);
 
                 break;
 
             case MoveCaseNine.eR: //(상대가) 거리 벌림
 
-                ShouldBeEnemy.Distance += ShouldBeEnemy.Speed * multiplier;
+                ShouldBeEnemy.Distance += DisMax(ShouldBeEnemy.Speed * multiplier);
 
                 break;
         }
@@ -1380,6 +1413,9 @@ public class BattleManager : MonoBehaviour
                 case StatId.ShotDamage:
                     player.ShotAtk += Valu;
                     break;
+                case StatId.Crit:
+                    player.Crit += Valu;
+                    break;
             }
         }
     }
@@ -1420,7 +1456,7 @@ public class BattleManager : MonoBehaviour
                 {
                     for (int D = 0; D < enemy.DropItem.DropCount; D++)
                     {
-                        itemListItem.Get_ItemFromEnemy.Add(PG.GenerateRandomPart(enemy.Level));
+                        itemListItem.Get_ItemFromEnemy.Add(PG.GenerateRandomPart(enemy.DropitemLV));
                     }
                 }
 

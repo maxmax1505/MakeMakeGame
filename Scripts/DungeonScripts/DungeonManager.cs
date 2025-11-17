@@ -96,9 +96,9 @@ public class DungeonManager : MonoBehaviour
 
     public IEnumerator StartBattle()
     {
-        int monLev = 1;
+        int monLev = 2;
         float riSK = universManager.ComputeRisk(monLev);
-        battleManager.enemies = new List<ICharacter> { new Monster1(monLev, riSK), new Monster1(monLev, riSK) };
+        battleManager.enemies = new List<ICharacter> { new Monster1(), new Monster1() };
         battleManager.IfNameSame();
         sceneChanger.DungeonToBattle();
         yield return new WaitUntil(() => NotInBattle);
