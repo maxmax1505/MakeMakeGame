@@ -30,6 +30,10 @@ public class BattleManager : MonoBehaviour
     public float ShotRateSpeed = 0.3f;
 
     public static int TargetEnemy_Int;
+    public BodyPartSlot TargetPart;
+    [SerializeField] GameObject BodyTragetingBox;
+    [SerializeField] GameObject TargetingAlarmBox;
+    public bool IsTargetPartYes = false;
     bool IsFirstRun = true;
 
     /// <summary>
@@ -203,6 +207,7 @@ public class BattleManager : MonoBehaviour
                 if (buttonchoice.choicewhat == 0)
                 {
                     yield return StartCoroutine(ShotTargetEnemySelect());
+                    yield return StartCoroutine(BodyTargeting());
 
                     yield return StartCoroutine(ShotingPhase(player, Enemy_WithMarkers[TargetEnemy_Int].enemies));
 
@@ -255,6 +260,15 @@ public class BattleManager : MonoBehaviour
     #endregion
 
     #region 사격 페이즈
+    public Dictionary<BodyPartSlot, (float hit, float crit, float partbreak)> bodyBonuses =
+        new()
+        {
+            { BodyPartSlot.Head, (0.4f, 3.0f, 0.1f) },
+            { BodyPartSlot.Body, (1.0f, 1.0f, 0.1f) },
+            { BodyPartSlot.Arms, (0.7f, 1.0f, 0.5f) },
+            { BodyPartSlot.Legs, (0.7f, 1.0f, 0.5f) }
+        };
+
     public IEnumerator ShotingPhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy)
     {
         bool isPlayerInBattle = true;
@@ -270,6 +284,7 @@ public class BattleManager : MonoBehaviour
             {
                 yield return ShowThenWait("대상이 없다! 대상을 다시 지정해야 한다.");
                 yield return StartCoroutine(ShotTargetEnemySelect());
+                yield return StartCoroutine(BodyTargeting());
                 ShouldBeEnemy = Enemy_WithMarkers[TargetEnemy_Int].enemies;
             }
 
@@ -284,6 +299,7 @@ public class BattleManager : MonoBehaviour
 
                     Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.white;
                     yield return StartCoroutine(ShotTargetEnemySelect());
+                    yield return StartCoroutine(BodyTargeting());
                     ShouldBeEnemy = Enemy_WithMarkers[TargetEnemy_Int].enemies;
 
 
@@ -307,6 +323,7 @@ public class BattleManager : MonoBehaviour
 
                 case 6:
 
+                    TargetingAlarmBox.SetActive(false);
                     yield return ShowThenWait("당신은 행동을 끝마쳤다.");
                     isPlayerInBattle = false;
 
@@ -337,10 +354,11 @@ public class BattleManager : MonoBehaviour
             + attacker.Perception
             - (defender.Speed + defender.Perception * 0.5f);
 
+        float hitByPart = bodyBonuses[TargetPart].hit;
         // 총기 프로필의 거리 곡선 적용
         float hitCurve = attacker.EquipedGun.Profile.hitCurve.Evaluate(normalized);
 
-        return baseChance * hitCurve;
+        return baseChance * hitCurve * hitByPart;
     }
     public void ShotDamageMethod(ICharacter attacker, ICharacter defender)
     {
@@ -353,7 +371,8 @@ public class BattleManager : MonoBehaviour
 
         float CritM = 1;
         bool isCritHit = RollCriticalHit(attacker, defender);
-        if (isCritHit == true) { CritM = attacker.EquipedGun.CritMultiply; }
+        float critDmgByPart = bodyBonuses[TargetPart].crit;
+        if (isCritHit == true) { CritM = attacker.EquipedGun.CritMultiply * critDmgByPart; }
         Damage = (attacker.EquipedGun.ShotDamage + attacker.ShotAtk) * CritM;
 
         defender.CurrentHp -= Mathf.RoundToInt(Damage * DamageCurve);
@@ -372,8 +391,9 @@ public class BattleManager : MonoBehaviour
         float attCrit = Mathf.Max(1f, attacker.Crit);   // 최소값 보호
         float defCrit = Mathf.Max(1f, defender.CritResist);
 
+        float critByPart = bodyBonuses[TargetPart].crit;
         float ratio = attCrit / defCrit;               // 두 배라면 ratio=2
-        float chance = 0.2f + (ratio - 1f) * 0.4f;     // ratio=1 → 0.2, ratio=2 → 0.9
+        float chance = (0.2f + (ratio - 1f) * 0.4f) * critByPart;     // ratio=1 → 0.2, ratio=2 → 0.9
         chance = Mathf.Clamp(chance, 0.05f, 0.5f);    // 지나친 극단값 방지
 
         return UnityEngine.Random.value < chance;
@@ -389,6 +409,39 @@ public class BattleManager : MonoBehaviour
         yield return new WaitUntil(() => buttonValueSelector.choiceButtonTrue);
 
         Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.blue;
+    }
+    public IEnumerator BodyTargeting()
+    {
+        IsTargetPartYes = false;
+        BodyTragetingBox.SetActive(true);
+
+        TalkManager.Instance.ShowTemp("어디를?");
+
+        yield return new WaitUntil(() => IsTargetPartYes);
+
+        BodyTragetingBox.SetActive(false);
+
+        TargetingAlarmBox.SetActive(true);
+        TextMeshProUGUI targetText = TargetingAlarmBox.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+        string partText = "";
+
+        switch(TargetPart)
+        {
+            case BodyPartSlot.Head:
+                partText = "머리";
+                break;
+            case BodyPartSlot.Body:
+                partText = "몸통";
+                break;
+            case BodyPartSlot.Arms:
+                partText = "팔";
+                break;
+            case BodyPartSlot.Legs:
+                partText = "다리";
+                break;
+        }
+
+        targetText.text = $"{partText}";
     }
     public IEnumerator DoFuckingShotTheFAce(ICharacter attacker, ICharacter defender, int buttonclick)
     {
@@ -554,7 +607,6 @@ public class BattleManager : MonoBehaviour
             }
         }
     }
-
     public void FireLaser(RectTransform origin, RectTransform target, bool hit)
     {
         GameObject laser = Instantiate(laserPrefab, uiCanvasRoot);
