@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
-public enum GunType { Pistol, Shotgun, Sniper }
+public enum GunType { Pistol, Shotgun, Sniper, Laser }
 
 [System.Serializable]
 public class GunProfile

@@ -66,7 +66,7 @@ public class ItemListItem : MonoBehaviour
     void Start()
     {
         Get_ItemFromEnemy = new List<IItem>();
-        PlayerInventoryList = new List<IItem> { PG.GenerateRandomPart(1), PG.GenerateRandomPart(5), PG.GenerateRandomPart(10), PG.GenerateRandomPart(50), PG.GenerateRandomPart(100) };
+        PlayerInventoryList = new List<IItem> ();
         PlayerEquippedList = new List<IItem> { new NormalShotgun() };
 
         Refresh();

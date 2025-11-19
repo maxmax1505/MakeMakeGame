@@ -20,6 +20,7 @@ public class BattleManager : MonoBehaviour
 
     [SerializeField] RectTransform uiCanvasRoot;
     [SerializeField] GameObject bulletPrefab;
+    [SerializeField] GameObject laserPrefab;
 
     public bool ISPlayerNotInBattle = true;
     public bool running;
@@ -109,7 +110,7 @@ public class BattleManager : MonoBehaviour
 
         guns = new List<IGun> { new NormalPistol(), new NormalShotgun() };
         //Debug.Log(guns[0].Name);
-        
+
         //enemies = new List<ICharacter> { new Monster1(guns[0], monLev, riSK), new Monster1(guns[0], monLev, riSK) };
         //IfNameSame();
 
@@ -149,7 +150,7 @@ public class BattleManager : MonoBehaviour
 
             Sliders[i].value = 1f;
             Enemy_WithMarkers[i].marker.GetChild(0).GetComponent<Slider>().value = 1f;
-            Enemy_WithMarkers[i].marker.GetComponent<Image>().color = Color.white; 
+            Enemy_WithMarkers[i].marker.GetComponent<Image>().color = Color.white;
         }
 
         while (!ISPlayerNotInBattle)
@@ -295,7 +296,7 @@ public class BattleManager : MonoBehaviour
                         player.CurrentAp -= 2;
                         Update_ApSlider();
                         yield return StartCoroutine(DoFuckingShotTheFAce(ShouldBePlayer, ShouldBeEnemy, 0));
-                        
+
                     }
                     else
                     {
@@ -312,9 +313,9 @@ public class BattleManager : MonoBehaviour
                     break;
             }
 
-            
+
             DeathOfEnemy();
-            if(ISPlayerNotInBattle == true)
+            if (ISPlayerNotInBattle == true)
             {
                 yield break;
             }
@@ -355,7 +356,7 @@ public class BattleManager : MonoBehaviour
         if (isCritHit == true) { CritM = attacker.EquipedGun.CritMultiply; }
         Damage = (attacker.EquipedGun.ShotDamage + attacker.ShotAtk) * CritM;
 
-        defender.CurrentHp -= Mathf.RoundToInt(Damage*DamageCurve);
+        defender.CurrentHp -= Mathf.RoundToInt(Damage * DamageCurve);
     }
     /*
     public float PercFactor(ICharacter attacker)
@@ -499,6 +500,10 @@ public class BattleManager : MonoBehaviour
             case GunType.Shotgun:
                 FireShotgun(origin, target, hit);
                 break;
+
+            case GunType.Laser:
+                FireLaser(origin, target, hit);
+                break;
         }
     }
     public void FireBullet(RectTransform origin, RectTransform target, bool hit)
@@ -549,6 +554,21 @@ public class BattleManager : MonoBehaviour
             }
         }
     }
+
+    public void FireLaser(RectTransform origin, RectTransform target, bool hit)
+    {
+        GameObject laser = Instantiate(laserPrefab, uiCanvasRoot);
+        var laserRect = laser.GetComponent<RectTransform>();
+        var laserScript = laser.GetComponent<LaserBullet>();
+
+        if (laserRect != null && laserScript != null)
+        {
+            Vector2 start = origin.anchoredPosition;
+            Vector2 end = target.anchoredPosition;
+            laserScript.Initialize(start, end, hit);
+        }
+    }
+
     #endregion
 
     #endregion
@@ -1061,7 +1081,7 @@ public class BattleManager : MonoBehaviour
         }
         */
 
-        if(ShouldBeEnemy.CurrentHp <= 0)
+        if (ShouldBeEnemy.CurrentHp <= 0)
         {
             yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 죽음에 이르는 피해를 입었다!");
         }
@@ -1161,7 +1181,7 @@ public class BattleManager : MonoBehaviour
 
             yield return StartCoroutine(ExecuteSpell(ShouldBePlayer.SpellData[buttonchoice.choicewhat], ShouldBePlayer, ShouldBeEnemy));
 
-            for(int i = 0; i < Enemy_WithMarkers.Count; i++)
+            for (int i = 0; i < Enemy_WithMarkers.Count; i++)
             {
                 if (Enemy_WithMarkers[i].enemies == null) continue;
 
@@ -1312,7 +1332,7 @@ public class BattleManager : MonoBehaviour
     }
     public void Update_HpSlider()
     {
-        PlayerSlider.value = Mathf.InverseLerp(0 , player.HP, (float)player.CurrentHp);
+        PlayerSlider.value = Mathf.InverseLerp(0, player.HP, (float)player.CurrentHp);
     }
     public void IfNameSame()
     {
@@ -1372,7 +1392,7 @@ public class BattleManager : MonoBehaviour
     public string GetPlayerTooltip()
     {
         return $"{player.Name}\nHP: {player.CurrentHp}/{player.HP}\n거리: {player.Distance}\n사격 데미지: {player.ShotAtk} 스피드: {player.Speed}\n인지: {player.Perception} 정신력: {player.WillPower}";
-    
+
     }
     #endregion
 
@@ -1452,7 +1472,7 @@ public class BattleManager : MonoBehaviour
                     }
                 }
 
-                if(enemy.DropItem.DropWhat == 1)
+                if (enemy.DropItem.DropWhat == 1)
                 {
                     for (int D = 0; D < enemy.DropItem.DropCount; D++)
                     {
@@ -1490,7 +1510,7 @@ public class BattleManager : MonoBehaviour
                 IsWin = false;
         }
 
-        if(IsWin == true)
+        if (IsWin == true)
         {
             ISPlayerNotInBattle = true;
         }

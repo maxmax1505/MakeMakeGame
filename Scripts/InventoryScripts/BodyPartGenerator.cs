@@ -166,11 +166,11 @@ public class BodyPartGenerator : MonoBehaviour
     {
         Dictionary<StatId, float> statScaling = new()
         {
-            { StatId.Hp, 5f },          // 최소 +5 단위
+            { StatId.Hp, 1.5f },          // 최소 +5 단위
             { StatId.ShotDamage, 1f },  // 최소 +1 단위
             { StatId.Speed, 1f },     // 예: 0.5 단위
             { StatId.Crit, 1f },
-            { StatId.Mp, 3f },
+            { StatId.Mp, 1.5f },
             { StatId.Perseption, 1f },
             { StatId.CritResist, 1f },
             
