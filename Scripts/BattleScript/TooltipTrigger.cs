@@ -12,6 +12,7 @@ public class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     public int enemyIndex = -1;      // 마커별로 인덱스를 설정 (버튼이면 -1)
     public bool isPlayerMarker = false;   // 추가
     BattleManager manager;           // BattleManager 싱글톤이나 참조
+    BodyTargetUi bodyTargetUi;
 
      
     void Awake()

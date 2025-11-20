@@ -6,6 +6,8 @@ public class TooltipUI : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI tooltipLabel;
     [SerializeField] RectTransform background;
+
+    [SerializeField] BodyTargetUi bodyTargetUi;
     RectTransform _rect;
 
     void Awake() => _rect = (RectTransform)transform;
@@ -26,6 +28,10 @@ public class TooltipUI : MonoBehaviour
     public void Hide()
     {
         gameObject.SetActive(false);
+        if (bodyTargetUi != null)
+        {
+            bodyTargetUi.Disable_BodyTooltipUi();
+        }
         background.gameObject.SetActive(false);
     }
 }

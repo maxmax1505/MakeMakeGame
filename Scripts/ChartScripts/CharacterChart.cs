@@ -29,6 +29,14 @@ public interface ICharacter
     float base_Crit { get; set; }
     float CritResist { get; set; }
     float base_CritResist { get; set; }
+    float Evade { get; set; }
+    float base_Evade { get; set; }
+    #region 신체 체력
+    int Body_Hp { get; set; }
+    int Arm_Hp { get; set; }
+    int Head_Hp { get; set; }
+    int Leg_Hp { get; set; }
+    #endregion
     #endregion
 
     #region 총 관련
@@ -43,6 +51,7 @@ public interface ICharacter
     #endregion
 
     int CharaterRunAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy);
+    BodyPartSlot CharacterShotWhereAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy);
     (int DropWhat, int DropCount) DropItem { get; set; }
 
     List<ISpell> SpellData { get; set; }
@@ -77,7 +86,7 @@ public class PlayerCharacter : ICharacter
     public string Name { get; set; } = "당신";
     public int Level { get; set; } = 1;
     public int DropitemLV { get; set; }
-    public int HP { get; set; } = 30;
+    public int HP { get; set; } = 10;
     public int CurrentHp { get; set; } = 10;
     public int MP { get; set; } = 10;
     public int CurrentMp { get; set; } = 10;
@@ -97,6 +106,15 @@ public class PlayerCharacter : ICharacter
     public float base_Crit { get; set; } = 10;
     public float CritResist { get; set; } = 10;
     public float base_CritResist { get; set; } = 10;
+    public float Evade { get; set; } = 10;
+    public float base_Evade { get; set; } = 10;
+
+    #region 신체 체력
+    public int Body_Hp { get; set; } = 3;
+    public int Arm_Hp { get; set; } = 3;
+    public int Head_Hp { get; set; } = 3;
+    public int Leg_Hp { get; set; } = 3;
+    #endregion
 
     #endregion
 
@@ -104,6 +122,10 @@ public class PlayerCharacter : ICharacter
     {
         return -1;
     } //미구현
+    public BodyPartSlot CharacterShotWhereAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy)
+    {
+        return BodyPartSlot.Body;
+    }//미구현
     public (int DropWhat, int DropCount) DropItem { get; set; }
 
     #region 총기 관련
@@ -208,6 +230,14 @@ public class Monster1 : ICharacter
     public float base_Crit { get; set; } = 10;
     public float CritResist { get; set; } = 10;
     public float base_CritResist { get; set; } = 10;
+    public float Evade { get; set; } = 10;
+    public float base_Evade { get; set; } = 10;
+    #region 신체 체력
+    public int Body_Hp { get; set; } = 3;
+    public int Arm_Hp { get; set; } = 3;
+    public int Head_Hp { get; set; } = 3;
+    public int Leg_Hp { get; set; } = 3;
+    #endregion
 
     #endregion
 
@@ -233,6 +263,10 @@ public class Monster1 : ICharacter
                 return 1; //거리 유지
             }
         }
+    }
+    public BodyPartSlot CharacterShotWhereAI(ICharacter ShouldBePlayer, ICharacter ShouldBeThatEnemy)
+    {
+        return BodyPartSlot.Body;
     }
 
     public (int DropWhat, int DropCount) DropItem { get; set; } = new(1, 1);

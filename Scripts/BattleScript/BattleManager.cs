@@ -17,6 +17,7 @@ public class BattleManager : MonoBehaviour
     public SceneChanger sceneChanger;
     public UniversManager universManager;
     public DungeonManager dungeonManager;
+    public BodyTargetUi bodyTargetUi;
 
     [SerializeField] RectTransform uiCanvasRoot;
     [SerializeField] GameObject bulletPrefab;
@@ -352,7 +353,7 @@ public class BattleManager : MonoBehaviour
             40f
             + attacker.EquipedGun.AimCorrection
             + attacker.Perception
-            - (defender.Speed + defender.Perception * 0.5f);
+            - defender.Evade;
 
         float hitByPart = bodyBonuses[TargetPart].hit;
         // 총기 프로필의 거리 곡선 적용
@@ -366,14 +367,15 @@ public class BattleManager : MonoBehaviour
         float rawDistance = attacker.Distance + defender.Distance - MleeRange;
         float normalized = Mathf.Clamp01(rawDistance / (gameMax - MleeRange));
         float DamageCurve = attacker.EquipedGun.Profile.damageCurve.Evaluate(normalized);
-
+        Debug.Log(DamageCurve);
         float Damage;
 
-        float CritM = 1;
+        float CritM = 1f;
         bool isCritHit = RollCriticalHit(attacker, defender);
         float critDmgByPart = bodyBonuses[TargetPart].crit;
+        Debug.Log(isCritHit);
         if (isCritHit == true) { CritM = attacker.EquipedGun.CritMultiply * critDmgByPart; }
-        Damage = (attacker.EquipedGun.ShotDamage + attacker.ShotAtk) * CritM;
+        Damage = (attacker.EquipedGun.ShotDamage + attacker.ShotAtk * 0.5f) * CritM;
 
         defender.CurrentHp -= Mathf.RoundToInt(Damage * DamageCurve);
     }
@@ -397,6 +399,49 @@ public class BattleManager : MonoBehaviour
         chance = Mathf.Clamp(chance, 0.05f, 0.5f);    // 지나친 극단값 방지
 
         return UnityEngine.Random.value < chance;
+    }
+    public void PartBreak(ICharacter defender)
+    {
+        float Rv = UnityEngine.Random.value;
+
+        if(Rv < bodyBonuses[TargetPart].partbreak)
+        {
+            switch (TargetPart)
+            {
+                case BodyPartSlot.Head:
+                    defender.Head_Hp --;
+                    Mathf.Clamp(defender.Head_Hp, 0, 3);
+                    break;
+                case BodyPartSlot.Body:
+                    defender.Body_Hp --;
+                    Mathf.Clamp(defender.Body_Hp, 0, 3);
+                    break;
+                case BodyPartSlot.Arms:
+                    defender.Arm_Hp --;
+                    Mathf.Clamp(defender.Arm_Hp, 0, 3);
+                    break;
+                case BodyPartSlot.Legs:
+                    defender.Leg_Hp --;
+                    Mathf.Clamp(defender.Leg_Hp, 0, 3);
+                    break;
+            }
+        }
+    }
+    public (int hp, string part) Partnow(ICharacter defender)
+    {
+        switch (TargetPart)
+        {
+            case BodyPartSlot.Body:
+                return (defender.Body_Hp, "몸통");
+            case BodyPartSlot.Head:
+                return (defender.Head_Hp, "머리");
+            case BodyPartSlot.Arms:
+                return (defender.Arm_Hp, "팔");
+            case BodyPartSlot.Legs:
+                return (defender.Leg_Hp, "다리");
+            default:
+                return (defender.Body_Hp, "몸");
+        }
     }
     public IEnumerator ShotTargetEnemySelect()
     {
@@ -450,9 +495,8 @@ public class BattleManager : MonoBehaviour
         float ShotChance = CalcShotChance(attacker, defender);
 
         int calcdamageX = defender.CurrentHp;
-        ShotDamageMethod(attacker, defender);
-        calcdamageX = calcdamageX - defender.CurrentHp;
-        defender.CurrentHp += calcdamageX;
+        int beforePartHP = Partnow(defender).hp;
+        string isPartBreak = "";
 
         for (int i = 0; i < attacker.EquipedGun.ShotCountPerTurn; i++)
         {
@@ -462,10 +506,19 @@ public class BattleManager : MonoBehaviour
             if (Randx <= ShotChance)
             {
                 HowManyShot++;
+                int NowParHp;
+                string partmassage = "";
+                int dealedHP = defender.HP;
 
                 ShotDamageMethod(attacker, defender);
+                NowParHp = Partnow(defender).hp;
+                PartBreak(defender);
+                if(NowParHp != Partnow(defender).hp)
+                {
+                    partmassage = Partnow(defender).part + " 파괴!";
+                }
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
-                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {Mathf.RoundToInt(ShotChance)}");
+                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {dealedHP - defender.CurrentHp} 데미지를 주었다! 확률 : {Mathf.RoundToInt(ShotChance)} {partmassage}");
                 FireEffect(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true, attacker);
                 Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.red;
                 Enemy_WithMarkers[TargetEnemy_Int].slider.value = (float)Enemy_WithMarkers[TargetEnemy_Int].enemies.CurrentHp / Enemy_WithMarkers[TargetEnemy_Int].enemies.HP;
@@ -483,8 +536,13 @@ public class BattleManager : MonoBehaviour
             yield return new WaitForSeconds(ShotRateSpeed);
             Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.blue;
         }
+        if(beforePartHP != Partnow(defender).hp)
+        {
+            beforePartHP -= Partnow(defender).hp;
+            isPartBreak = Partnow(defender).part + $" -{beforePartHP}";
+        }
 
-        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {Mathf.RoundToInt(ShotChance)} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
+        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {Mathf.RoundToInt(ShotChance)} 데미지 : {calcdamageX - defender.CurrentHp} {defender.Name}의 남은 HP: {defender.CurrentHp} {isPartBreak}");
 
         if (defender.CurrentHp <= 0)
         {
@@ -499,13 +557,14 @@ public class BattleManager : MonoBehaviour
     }
     public IEnumerator EnemyShotYourFaceFuck(ICharacter attacker, ICharacter defender, int currentEnemy)
     {
-        int calcdamageX = defender.CurrentHp;
-        ShotDamageMethod(attacker, defender);
-        calcdamageX = calcdamageX - defender.CurrentHp;
-        defender.CurrentHp += calcdamageX;
-
+        TargetPart = defender.CharacterShotWhereAI(attacker, defender);
+        TargetingAlarmBox.SetActive(true);
         int HowManyShot = 0;
         float ShotChance = CalcShotChance(attacker, defender);
+
+        int calcdamageX = defender.CurrentHp;
+        int beforePartHP = Partnow(defender).hp;
+        string isPartBreak = "";
 
         for (int i = 0; i < attacker.EquipedGun.ShotCountPerTurn; i++)
         {
@@ -516,9 +575,19 @@ public class BattleManager : MonoBehaviour
             {
                 HowManyShot++;
 
+                int NowParHp;
+                string partmassage = "";
+                int dealedHP = defender.HP;
+
                 ShotDamageMethod(attacker, defender);
+                NowParHp = Partnow(defender).hp;
+                PartBreak(defender);
+                if (NowParHp != Partnow(defender).hp)
+                {
+                    partmassage = Partnow(defender).part + " 파괴!";
+                }
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
-                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {calcdamageX} 데미지를 주었다! 확률 : {Mathf.RoundToInt(ShotChance)}");
+                TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {dealedHP - defender.CurrentHp} 데미지를 주었다! 확률 : {Mathf.RoundToInt(ShotChance)} {partmassage}");
                 FireEffect(Enemy_WithMarkers[currentEnemy].marker, minPoint, true, attacker);
                 minPoint.gameObject.GetComponent<Image>().color = Color.red;
                 PlayerSlider.value = (float)player.CurrentHp / player.HP;
@@ -536,9 +605,14 @@ public class BattleManager : MonoBehaviour
             yield return new WaitForSeconds(ShotRateSpeed);
             minPoint.gameObject.GetComponent<Image>().color = Color.white;
         }
+        if (beforePartHP != Partnow(defender).hp)
+        {
+            beforePartHP -= Partnow(defender).hp;
+            isPartBreak = Partnow(defender).part + $" -{beforePartHP}";
+        }
 
-        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {Mathf.RoundToInt(ShotChance)} 데미지 : {calcdamageX * HowManyShot} {defender.Name}의 남은 HP: {defender.CurrentHp}");
-
+        yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {Mathf.RoundToInt(ShotChance)} 데미지 : {calcdamageX - defender.CurrentHp} {defender.Name}의 남은 HP: {defender.CurrentHp} {isPartBreak}");
+        TargetingAlarmBox.SetActive(false);
     }
     #region 총알발사 UI
     public void FireEffect(RectTransform origin, RectTransform target, bool hit, ICharacter attacker)
@@ -727,13 +801,13 @@ public class BattleManager : MonoBehaviour
                         {
                             MoveCases = 3; //pA
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 유지하려했지만 실패했다. 확률:{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 유지하려했지만 실패했다. 확률:{Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP))}");
                         }
                         else //상대는 거리 성공
                         {
                             MoveCases = 1; //pKeK
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 유지했다! 확률:{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 유지했다! 확률:{Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP))}");
                         }
 
                         break;
@@ -744,13 +818,13 @@ public class BattleManager : MonoBehaviour
                         {
                             MoveCases = 3; //pA
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 벌리려했지만 실패했다. 확률:{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 벌리려했지만 실패했다. 확률:{Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE))}");
                         }
                         else //상대 거리 벌리기 성공
                         {
                             MoveCases = 6; //eR
 
-                            yield return ShowThenWait($"당신은 거리를 좁히는데 실패했고, {ShouldBeEnemy.Name}은(는) 거리를 벌렸다! 확률:{CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
+                            yield return ShowThenWait($"당신은 거리를 좁히는데 실패했고, {ShouldBeEnemy.Name}은(는) 거리를 벌렸다! 확률:{Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE))}");
                         }
 
                         break;
@@ -770,13 +844,13 @@ public class BattleManager : MonoBehaviour
                         { // 상대 거리 좁히기 실패
                             MoveCases = 1; //pKeK
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 좁히려 했으나 실패했다. 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 좁히려 했으나 실패했다. 확률 : {Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP))}");
                         }
                         else // 상대 거리 좁히기 성공
                         {
                             MoveCases = 5; //eA
 
-                            yield return ShowThenWait($"거리 유지 실패! 상대는 거리를 좁혔다! 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
+                            yield return ShowThenWait($"거리 유지 실패! 상대는 거리를 좁혔다! 확률 : {Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP))}");
                         }
 
                         yield return ShowThenWait($"{ShouldBePlayer.Name}과 {ShouldBeEnemy.Name}의 거리는 {ShouldBeEnemy.Distance}(이)가 되었다!");
@@ -797,14 +871,14 @@ public class BattleManager : MonoBehaviour
                         {
                             MoveCases = 1; //pKeK
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 벌리려했지만 실패했다. 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 벌리려했지만 실패했다. 확률 : {Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP))}");
 
                         }
                         else   //상대 거리 벌리기 성공
                         {
                             MoveCases = 6; //eR 
 
-                            yield return ShowThenWait($"거리 유지 실패! {ShouldBeEnemy.Name}은(는) 거리를 벌렸다! 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP)}");
+                            yield return ShowThenWait($"거리 유지 실패! {ShouldBeEnemy.Name}은(는) 거리를 벌렸다! 확률 : {Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_PLAYER_KEEP))}");
 
                         }
 
@@ -825,13 +899,13 @@ public class BattleManager : MonoBehaviour
                         {
                             MoveCases = 4; //pR
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 좁히려했지만 실패했다. 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 좁히려했지만 실패했다. 확률 : {Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE))}");
                         }
                         else //상대 거리 좁히기 성공
                         {
                             MoveCases = 5; //eA
 
-                            yield return ShowThenWait($"거리 벌리기 실패! {ShouldBeEnemy.Name}은(는) 거리를 좁혔다! 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE)}");
+                            yield return ShowThenWait($"거리 벌리기 실패! {ShouldBeEnemy.Name}은(는) 거리를 좁혔다! 확률 : {Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_CONTEST_RETREAT_OR_ADVANCE))}");
                         }
 
                         break;
@@ -842,13 +916,13 @@ public class BattleManager : MonoBehaviour
                         {
                             MoveCases = 3; // pA
 
-                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 유지하려했지만 실패했다. 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
+                            yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) 거리를 유지하려했지만 실패했다. 확률 : {Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP))}");
                         }
                         else //상대 거리 유지
                         {
                             MoveCases = 1; //pKeK
 
-                            yield return ShowThenWait($"거리 벌리기 실패! {ShouldBeEnemy.Name}은(는) 거리를 유지했다! 확률 : {CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP)}");
+                            yield return ShowThenWait($"거리 벌리기 실패! {ShouldBeEnemy.Name}은(는) 거리를 유지했다! 확률 : {Mathf.RoundToInt(CalcSpeedChance(ShouldBePlayer, ShouldBeEnemy, DELTA_ENEMY_KEEP))}");
                         }
 
                         break;
@@ -1438,14 +1512,16 @@ public class BattleManager : MonoBehaviour
         if (enemy == null)
             return string.Empty;
 
+        bodyTargetUi.Update_BodyTooltip(enemy);
         return $"{enemy.Name}\nHP: {enemy.CurrentHp}/{enemy.HP} MP: {enemy.CurrentMp}/{enemy.MP}\n거리: {enemy.Distance}\n사격 데미지: {enemy.ShotAtk} 스피드: {enemy.Speed}\n인지: {enemy.Perception} 정신력: {enemy.WillPower}";
     }
 
     public string GetPlayerTooltip()
     {
+        bodyTargetUi.Update_BodyTooltip(player);
         return $"{player.Name}\nHP: {player.CurrentHp}/{player.HP}\n거리: {player.Distance}\n사격 데미지: {player.ShotAtk} 스피드: {player.Speed}\n인지: {player.Perception} 정신력: {player.WillPower}";
-
     }
+
     #endregion
 
     #region 기타
@@ -1502,7 +1578,7 @@ public class BattleManager : MonoBehaviour
 
         playerstat = $"플레이어 스탯 \n \n체력 : {player.HP} 정신력 : {player.MP}\n" +
             $"스피드 : {player.Speed} 의지력 : {player.WillPower}\n" +
-            $"사격 데미지 : {player.ShotAtk} 인지 : {player.Perception}";
+            $"사격 데미지 : {player.EquipedGun.ShotDamage + player.ShotAtk * 0.5f} 명중률 : {player.Perception}";
 
         return playerstat;
     }
@@ -1564,6 +1640,7 @@ public class BattleManager : MonoBehaviour
 
         if (IsWin == true)
         {
+            TargetingAlarmBox.SetActive(false);
             ISPlayerNotInBattle = true;
         }
     }
