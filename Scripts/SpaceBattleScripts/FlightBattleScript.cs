@@ -10,6 +10,11 @@ public class FlightBattleScript : MonoBehaviour
     [SerializeField]Transform PlayerShip;
     [SerializeField]Transform EnemyShip;
 
+    [SerializeField] Transform PshipIcon;
+    [SerializeField] Transform StartPoint;
+    [SerializeField] Transform EndPoint;
+
+
     [SerializeField]BattleManager battleManager;
 
     [SerializeField] Slider PlayerShipHPSlide;
@@ -25,6 +30,9 @@ public class FlightBattleScript : MonoBehaviour
 
     [SerializeField] RectTransform PlayerRightGun;
     [SerializeField] RectTransform PlayerLeftGun;
+
+    public bool reached = false;
+    public bool InSpaceBattle = false;
 
     float timer;
     Coroutine chaseShake;
@@ -45,6 +53,75 @@ public class FlightBattleScript : MonoBehaviour
     public void SetPlayer(IFlight player)
     {
         this.PlayerFlight = player;
+    }
+    public IEnumerator TravelInSpace()
+    {
+        reached = false;
+        float timer = 0f;
+        float currentTimer = 0f;
+        float DungeonEncounter = Random.Range(3f, 8f);
+        float travelTime = 30;
+
+        while (!reached)
+        {
+            timer += Time.deltaTime;
+            currentTimer = timer;
+            PshipIcon.position = Vector3.Lerp(StartPoint.position, EndPoint.position, timer / travelTime);
+
+            if (timer >= DungeonEncounter)
+            {
+                DungeonEncounter = currentTimer + Random.Range(3f, 8f);
+            }
+
+            if (!InSpaceBattle)
+            {
+                InSpaceBattle = true;
+                StartCoroutine(SpaceBattle());
+            }
+
+            if ((timer >= travelTime))
+            {
+                PshipIcon.position = EndPoint.transform.position;
+                reached = true;
+            }
+
+            yield return null;
+        }
+
+        yield break;
+    }
+    public IEnumerator SpaceBattle()
+    {
+        bool playerturn = true;
+        for (int i = 0; i < 20; i++)
+        {
+            if (playerturn == true)
+            {
+                if (i % 2 == 0)
+                {
+                    yield return FlightShoot(PlayerFlight, monsterShip, PlayerRightGun, enemyRect);
+                }
+                else
+                {
+                    yield return FlightShoot(PlayerFlight, monsterShip, PlayerLeftGun, enemyRect);
+                }
+                UpdateEnemySlide(EnemyShip, monsterShip);
+
+                if (i == 9)
+                {
+                    playerturn = false;
+                    yield return new WaitForSeconds(0.2f);
+                }
+            }
+            else if (playerturn == false)
+            {
+                yield return FlightShoot(monsterShip, PlayerFlight, enemyRect, playerRect);
+                UpdatePlayerSlide();
+            }
+
+            yield return new WaitForSeconds(0.1f);
+        }
+        InSpaceBattle = false;
     }
     public IEnumerator FlightMove()
     {

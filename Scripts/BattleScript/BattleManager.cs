@@ -34,6 +34,7 @@ public class BattleManager : MonoBehaviour
     public BodyPartSlot TargetPart;
     [SerializeField] GameObject BodyTragetingBox;
     [SerializeField] GameObject TargetingAlarmBox;
+    [SerializeField] GameObject HitOrNotAlarmBox;
     public bool IsTargetPartYes = false;
     bool IsFirstRun = true;
 
@@ -492,6 +493,9 @@ public class BattleManager : MonoBehaviour
     {
 
         int HowManyShot = 0;
+        HitOrNotAlarmBox.SetActive(true);
+        TextMeshProUGUI hnBoxtext = HitOrNotAlarmBox.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+        Image hnBoxColor = HitOrNotAlarmBox.GetComponent<Image>();
         float ShotChance = CalcShotChance(attacker, defender);
 
         int calcdamageX = defender.CurrentHp;
@@ -518,6 +522,8 @@ public class BattleManager : MonoBehaviour
                     partmassage = Partnow(defender).part + " 파괴!";
                 }
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
+                hnBoxtext.text = $"명중 x{HowManyShot}";
+                hnBoxColor.color = Color.green;
                 TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {dealedHP - defender.CurrentHp} 데미지를 주었다! 확률 : {Mathf.RoundToInt(ShotChance)} {partmassage}");
                 FireEffect(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, true, attacker);
                 Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.red;
@@ -527,6 +533,8 @@ public class BattleManager : MonoBehaviour
             }
             else
             {
+                hnBoxColor.color = Color.yellow;
+                hnBoxtext.text = "빗나감";
                 TalkManager.Instance.ShowTemp($"{i}발째 : 감나빗! {attacker.Name}의 공격은 빗나갔다! 확률 : {Mathf.RoundToInt(ShotChance)}");
                 FireEffect(minPoint, Enemy_WithMarkers[TargetEnemy_Int].marker, false, attacker);
 
@@ -541,13 +549,20 @@ public class BattleManager : MonoBehaviour
             beforePartHP -= Partnow(defender).hp;
             isPartBreak = Partnow(defender).part + $" -{beforePartHP}";
         }
-
+        hnBoxtext.text = $"명중! x{HowManyShot}";
+        hnBoxColor.color = Color.green;
+        if(HowManyShot == 0)
+        {
+            hnBoxtext.text = $"빗나감!";
+            hnBoxColor.color = Color.yellow;
+        }
         yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {Mathf.RoundToInt(ShotChance)} 데미지 : {calcdamageX - defender.CurrentHp} {defender.Name}의 남은 HP: {defender.CurrentHp} {isPartBreak}");
 
         if (defender.CurrentHp <= 0)
         {
             yield return ShowThenWait($"{defender.Name}은 죽음에 이르는 피해를 입었다!");
         }
+        HitOrNotAlarmBox.SetActive(false);
         DeathOfEnemy();
         Enemy_WithMakers_RESTART(enemies);
         if (ISPlayerNotInBattle == true)
@@ -559,6 +574,29 @@ public class BattleManager : MonoBehaviour
     {
         TargetPart = defender.CharacterShotWhereAI(attacker, defender);
         TargetingAlarmBox.SetActive(true);
+        HitOrNotAlarmBox.SetActive(true);
+        TextMeshProUGUI targetText = TargetingAlarmBox.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI hnBoxtext = HitOrNotAlarmBox.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+        Image hnBoxColor = HitOrNotAlarmBox.GetComponent<Image>();
+        string partText = "";
+
+        switch (TargetPart)
+        {
+            case BodyPartSlot.Head:
+                partText = "머리";
+                break;
+            case BodyPartSlot.Body:
+                partText = "몸통";
+                break;
+            case BodyPartSlot.Arms:
+                partText = "팔";
+                break;
+            case BodyPartSlot.Legs:
+                partText = "다리";
+                break;
+        }
+
+        targetText.text = $"{partText}";
         int HowManyShot = 0;
         float ShotChance = CalcShotChance(attacker, defender);
 
@@ -587,6 +625,8 @@ public class BattleManager : MonoBehaviour
                     partmassage = Partnow(defender).part + " 파괴!";
                 }
                 defender.CurrentHp = Mathf.Max(0, defender.CurrentHp);
+                hnBoxtext.text = $"피격! x{HowManyShot}";
+                hnBoxColor.color = Color.red;
                 TalkManager.Instance.ShowTemp($"{i}발째 : 명중! {attacker.Name}은(는) {defender.Name}에게 {dealedHP - defender.CurrentHp} 데미지를 주었다! 확률 : {Mathf.RoundToInt(ShotChance)} {partmassage}");
                 FireEffect(Enemy_WithMarkers[currentEnemy].marker, minPoint, true, attacker);
                 minPoint.gameObject.GetComponent<Image>().color = Color.red;
@@ -596,6 +636,8 @@ public class BattleManager : MonoBehaviour
             }
             else
             {
+                hnBoxtext.text = $"회피!";
+                hnBoxColor.color = Color.green;
                 TalkManager.Instance.ShowTemp($"{i}발째 : 감나빗! {attacker.Name}의 공격은 빗나갔다! 확률 : {Mathf.RoundToInt(ShotChance)}");
                 FireEffect(Enemy_WithMarkers[currentEnemy].marker, minPoint, false, attacker);
 
@@ -610,9 +652,16 @@ public class BattleManager : MonoBehaviour
             beforePartHP -= Partnow(defender).hp;
             isPartBreak = Partnow(defender).part + $" -{beforePartHP}";
         }
-
+        hnBoxtext.text = $"피격! x{HowManyShot}";
+        hnBoxColor.color = Color.red;
+        if(HowManyShot == 0)
+        {
+            hnBoxtext.text = $"회피!";
+            hnBoxColor.color = Color.green;
+        }
         yield return ShowThenWait($"{attacker.EquipedGun.ShotCountPerTurn}발 중 {HowManyShot}발 명중! 확률 : {Mathf.RoundToInt(ShotChance)} 데미지 : {calcdamageX - defender.CurrentHp} {defender.Name}의 남은 HP: {defender.CurrentHp} {isPartBreak}");
         TargetingAlarmBox.SetActive(false);
+        HitOrNotAlarmBox.SetActive(false);
     }
     #region 총알발사 UI
     public void FireEffect(RectTransform origin, RectTransform target, bool hit, ICharacter attacker)

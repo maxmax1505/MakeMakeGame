@@ -39,6 +39,7 @@ public class SpaceBattleManagerScript : MonoBehaviour
     {
         flightBattle.SetPlayer(playerShip);
         playerShip.Refresh();
+        StartCoroutine(flightBattle.TravelInSpace());
         //StartCoroutine(flightBattle.FlightMove());
     }
 
