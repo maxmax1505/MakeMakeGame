@@ -39,6 +39,7 @@ public class SpaceBattleManagerScript : MonoBehaviour
     {
         flightBattle.SetPlayer(playerShip);
         playerShip.Refresh();
+        flightBattle.EneFList = new List<IFlight> { new MonsterShip() };
         StartCoroutine(flightBattle.TravelInSpace());
         //StartCoroutine(flightBattle.FlightMove());
     }

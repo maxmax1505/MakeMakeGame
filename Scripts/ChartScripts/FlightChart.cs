@@ -28,6 +28,7 @@ public interface IFlight
     float current_power_chance { get; set; }
     float current_evasive { get; set; }
     #endregion
+    GameObject Icon { get; set; }
     void Refresh(); 
 }
 
@@ -51,6 +52,7 @@ public class PlayerShip : IFlight
     public float current_power_chance { get; set; }
     public float current_evasive { get; set; }
     #endregion
+    public GameObject Icon { get; set; }
     public void Refresh()
     {
         CurrentHull = Hull;
@@ -88,6 +90,7 @@ public class MonsterShip : IFlight
     public float current_power_chance { get; set; }
     public float current_evasive { get; set; }
     #endregion
+    public GameObject Icon { get; set; }
     public void Refresh()
     {
         CurrentHull = Hull;

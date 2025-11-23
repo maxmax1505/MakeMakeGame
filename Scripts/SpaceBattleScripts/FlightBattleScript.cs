@@ -14,6 +14,9 @@ public class FlightBattleScript : MonoBehaviour
     [SerializeField] Transform StartPoint;
     [SerializeField] Transform EndPoint;
 
+    [SerializeField] GameObject EnemyListBox;
+    [SerializeField] GameObject BattleListBox;
+    [SerializeField] GameObject EnemyListIconPrefab;
 
     [SerializeField]BattleManager battleManager;
 
@@ -42,6 +45,9 @@ public class FlightBattleScript : MonoBehaviour
 
     IFlight PlayerFlight;
     MonsterShip monsterShip = new MonsterShip { };
+    List<(IFlight listship, GameObject listicon)> EneF_InListBox = new();
+    List<(IFlight battleship, GameObject battleicon)> Enef_InBattleBox = new();
+    public List<IFlight> EneFList = new();
 
     public void Awake()
     {
@@ -59,8 +65,10 @@ public class FlightBattleScript : MonoBehaviour
         reached = false;
         float timer = 0f;
         float currentTimer = 0f;
-        float DungeonEncounter = Random.Range(3f, 8f);
-        float travelTime = 30;
+        float DungeonEncounter = Random.Range(0.5f, 3f);
+        float travelTime = 30f;
+        GameObject TargetEneIcon = null;
+        int TargetEnemyFlight_int;
 
         while (!reached)
         {
@@ -70,13 +78,24 @@ public class FlightBattleScript : MonoBehaviour
 
             if (timer >= DungeonEncounter)
             {
+                if (EnemyListBox.transform.childCount > 0)
+                {
+                    GameObject EneIcon = EneF_InListBox[0].listicon.gameObject;
+                    EneIcon.transform.SetParent(BattleListBox.transform);
+                    Enef_InBattleBox.Add(EneF_InListBox[0]);
+                    EneF_InListBox.RemoveAt(0);
+                    TargetEneIcon = Enef_InBattleBox[0].battleicon.gameObject;
+                }
+                GameObject ficon = Instantiate(EnemyListIconPrefab, EnemyListBox.transform);
+                EneF_InListBox.Add((EneFList[0], ficon));
                 DungeonEncounter = currentTimer + Random.Range(3f, 8f);
             }
 
-            if (!InSpaceBattle)
+            if (!InSpaceBattle && TargetEneIcon != null)
             {
                 InSpaceBattle = true;
-                StartCoroutine(SpaceBattle());
+                RectTransform IconRect = TargetEneIcon.transform.GetChild(0).gameObject.GetComponent<RectTransform>();
+                StartCoroutine(SpaceBattle(IconRect));
             }
 
             if ((timer >= travelTime))
@@ -90,7 +109,7 @@ public class FlightBattleScript : MonoBehaviour
 
         yield break;
     }
-    public IEnumerator SpaceBattle()
+    public IEnumerator SpaceBattle(RectTransform EnemyShipIcon)
     {
         bool playerturn = true;
         for (int i = 0; i < 20; i++)
@@ -99,13 +118,13 @@ public class FlightBattleScript : MonoBehaviour
             {
                 if (i % 2 == 0)
                 {
-                    yield return FlightShoot(PlayerFlight, monsterShip, PlayerRightGun, enemyRect);
+                    yield return FlightShoot(PlayerFlight, monsterShip, PlayerRightGun, EnemyShipIcon);
                 }
                 else
                 {
-                    yield return FlightShoot(PlayerFlight, monsterShip, PlayerLeftGun, enemyRect);
+                    yield return FlightShoot(PlayerFlight, monsterShip, PlayerLeftGun, EnemyShipIcon);
                 }
-                UpdateEnemySlide(EnemyShip, monsterShip);
+                UpdateEnemySlide(EnemyShipIcon, monsterShip);
 
                 if (i == 9)
                 {
@@ -115,7 +134,7 @@ public class FlightBattleScript : MonoBehaviour
             }
             else if (playerturn == false)
             {
-                yield return FlightShoot(monsterShip, PlayerFlight, enemyRect, playerRect);
+                yield return FlightShoot(monsterShip, PlayerFlight, EnemyShipIcon, playerRect);
                 UpdatePlayerSlide();
             }
 
