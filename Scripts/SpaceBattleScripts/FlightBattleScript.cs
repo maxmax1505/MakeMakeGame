@@ -1,4 +1,5 @@
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -47,7 +48,7 @@ public class FlightBattleScript : MonoBehaviour
     MonsterShip monsterShip = new MonsterShip { };
     List<(IFlight listship, GameObject listicon)> EneF_InListBox = new();
     List<(IFlight battleship, GameObject battleicon)> Enef_InBattleBox = new();
-    public List<IFlight> EneFList = new();
+    public List<Func<IFlight>> EneFList = new();
 
     public void Awake()
     {
@@ -65,10 +66,9 @@ public class FlightBattleScript : MonoBehaviour
         reached = false;
         float timer = 0f;
         float currentTimer = 0f;
-        float DungeonEncounter = Random.Range(0.5f, 3f);
+        float DungeonEncounter = UnityEngine.Random.Range(0.5f, 3f);
         float travelTime = 30f;
-        GameObject TargetEneIcon = null;
-        int TargetEnemyFlight_int;
+        int TargetEnemyFlightCount_int;
 
         while (!reached)
         {
@@ -84,18 +84,17 @@ public class FlightBattleScript : MonoBehaviour
                     EneIcon.transform.SetParent(BattleListBox.transform);
                     Enef_InBattleBox.Add(EneF_InListBox[0]);
                     EneF_InListBox.RemoveAt(0);
-                    TargetEneIcon = Enef_InBattleBox[0].battleicon.gameObject;
                 }
                 GameObject ficon = Instantiate(EnemyListIconPrefab, EnemyListBox.transform);
-                EneF_InListBox.Add((EneFList[0], ficon));
-                DungeonEncounter = currentTimer + Random.Range(3f, 8f);
+                EneF_InListBox.Add((EneFList[0].Invoke(), ficon));
+                DungeonEncounter = currentTimer + UnityEngine.Random.Range(3f, 5f);
             }
 
-            if (!InSpaceBattle && TargetEneIcon != null)
+            if (!InSpaceBattle && Enef_InBattleBox.Count != 0)
             {
                 InSpaceBattle = true;
-                RectTransform IconRect = TargetEneIcon.transform.GetChild(0).gameObject.GetComponent<RectTransform>();
-                StartCoroutine(SpaceBattle(IconRect));
+
+                StartCoroutine(SpaceBattle(Enef_InBattleBox.Count));
             }
 
             if ((timer >= travelTime))
@@ -109,22 +108,38 @@ public class FlightBattleScript : MonoBehaviour
 
         yield break;
     }
-    public IEnumerator SpaceBattle(RectTransform EnemyShipIcon)
+
+    (RectTransform iconRect, IFlight eneFlight) TargetEneF(int randomNum)
+    {
+        GameObject TargetEneIconX = Enef_InBattleBox[randomNum].battleicon.gameObject;
+        RectTransform IconRectX = TargetEneIconX.transform.GetChild(0).gameObject.GetComponent<RectTransform>();
+        IFlight eneflightX = Enef_InBattleBox[randomNum].battleship;
+
+        return (IconRectX, eneflightX);
+    }
+
+    public IEnumerator SpaceBattle(int enelistCount)
     {
         bool playerturn = true;
+
+        int ranx = UnityEngine.Random.Range(0, enelistCount);
+
+        int rany = UnityEngine.Random.Range(0, enelistCount);
+
         for (int i = 0; i < 20; i++)
         {
             if (playerturn == true)
             {
                 if (i % 2 == 0)
                 {
-                    yield return FlightShoot(PlayerFlight, monsterShip, PlayerRightGun, EnemyShipIcon);
+                    yield return FlightShoot(PlayerFlight, TargetEneF(ranx).eneFlight, PlayerRightGun, TargetEneF(ranx).iconRect);
                 }
                 else
                 {
-                    yield return FlightShoot(PlayerFlight, monsterShip, PlayerLeftGun, EnemyShipIcon);
+                    yield return FlightShoot(PlayerFlight, TargetEneF(rany).eneFlight, PlayerLeftGun, TargetEneF(rany).iconRect);
                 }
-                UpdateEnemySlide(EnemyShipIcon, monsterShip);
+                UpdateEnemySlide(TargetEneF(ranx).iconRect, TargetEneF(ranx).eneFlight);
+                UpdateEnemySlide(TargetEneF(rany).iconRect, TargetEneF(rany).eneFlight);
 
                 if (i == 9)
                 {
@@ -134,8 +149,19 @@ public class FlightBattleScript : MonoBehaviour
             }
             else if (playerturn == false)
             {
-                yield return FlightShoot(monsterShip, PlayerFlight, EnemyShipIcon, playerRect);
-                UpdatePlayerSlide();
+                if (ranx == rany)
+                {
+                    yield return FlightShoot(TargetEneF(ranx).eneFlight, PlayerFlight, TargetEneF(ranx).iconRect, playerRect);
+                    UpdatePlayerSlide();
+                }
+                else
+                {
+                    yield return FlightShoot(TargetEneF(ranx).eneFlight, PlayerFlight, TargetEneF(ranx).iconRect, playerRect);
+                    UpdatePlayerSlide();
+
+                    yield return FlightShoot(TargetEneF(rany).eneFlight, PlayerFlight, TargetEneF(rany).iconRect, playerRect);
+                    UpdatePlayerSlide();
+                }
             }
 
             yield return new WaitForSeconds(0.1f);
@@ -183,7 +209,7 @@ public class FlightBattleScript : MonoBehaviour
             playerStart = playerRect.anchoredPosition;
             enemyStart = enemyRect.anchoredPosition;
 
-            float ranX = Random.Range(0, PlayerFlight.current_speed_Chance + monsterShip.current_speed_Chance);
+            float ranX = UnityEngine.Random.Range(0, PlayerFlight.current_speed_Chance + monsterShip.current_speed_Chance);
 
             ChaseResult currentChase;
             if (ranX < PlayerFlight.current_speed_Chance)

@@ -183,7 +183,8 @@ public class Monster1 : ICharacter
         Initialize(new NormalPistol());
         DropitemLV = UnityEngine.Random.Range(1, 6);
         Debug.Log(DropitemLV);
-        Distance = UnityEngine.Random.Range(70, 151);
+        //Distance = UnityEngine.Random.Range(70, 151);
+        Distance = 30;
     }
     float Round(float value, int decimals = 2)
     {

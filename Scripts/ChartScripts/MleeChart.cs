@@ -35,6 +35,8 @@ public interface IMlee
     float HitChance(ICharacter attacker);
     float Damage(ICharacter attacker); //시발 어지러워
 
+    Color color { get; set; }
+
     Dictionary<MleeATKType, MleePlusMinus> MleeModifiers { get; }
 }
 
@@ -55,6 +57,8 @@ public class MleeChart : MonoBehaviour
         {
             return 10;
         }
+
+        public Color color { get; set; } = Color.red;
 
         public Dictionary<MleeATKType, MleePlusMinus> MleeModifiers { get; } = new()
         {
@@ -78,6 +82,8 @@ public class MleeChart : MonoBehaviour
             return 10;
         }
 
+        public Color color { get; set; } = Color.orange;
+
         public Dictionary<MleeATKType, MleePlusMinus> MleeModifiers { get; } = new()
         {
             { MleeATKType.SpeedATK, new MleePlusMinus(1.0f, 1.0f, 1f) },
@@ -100,6 +106,8 @@ public class MleeChart : MonoBehaviour
             return 10;
         }
 
+        public Color color { get; set; } = Color.blue;
+
         public Dictionary<MleeATKType, MleePlusMinus> MleeModifiers { get; } = new()
         {
             { MleeATKType.SpeedATK, new MleePlusMinus(2f, 0.4f, 1f) },
@@ -121,6 +129,8 @@ public class MleeChart : MonoBehaviour
         {
             return 10;
         }
+
+        public Color color { get; set; } = Color.green;
 
         public Dictionary<MleeATKType, MleePlusMinus> MleeModifiers { get; } = new()
         {

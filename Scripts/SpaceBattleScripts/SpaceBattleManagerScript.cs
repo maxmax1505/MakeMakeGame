@@ -31,6 +31,10 @@ public class SpaceBattleManagerScript : MonoBehaviour
 
     readonly float[] gaugeMultipliers = { 0.5f, 1f, 1.5f, 2f };
 
+    List<Func<IFlight>> enemyFactories = new()
+    {
+        () => new MonsterShip ()
+    };
     public void Start()
     {
         SendPlayer();
@@ -39,8 +43,8 @@ public class SpaceBattleManagerScript : MonoBehaviour
     {
         flightBattle.SetPlayer(playerShip);
         playerShip.Refresh();
-        flightBattle.EneFList = new List<IFlight> { new MonsterShip() };
-        StartCoroutine(flightBattle.TravelInSpace());
+        flightBattle.EneFList = new () { () => new MonsterShip()};
+        //StartCoroutine(flightBattle.TravelInSpace());
         //StartCoroutine(flightBattle.FlightMove());
     }
 

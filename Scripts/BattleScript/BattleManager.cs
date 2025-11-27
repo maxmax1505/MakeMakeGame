@@ -99,14 +99,47 @@ public class BattleManager : MonoBehaviour
     #endregion
 
     #region 밀리 버튼들
-    public Button MleeButton_1;
-    public TextMeshProUGUI MleeButtonText_1;
-    public Button MleeButton_2;
-    public TextMeshProUGUI MleeButtonText_2;
-    public Button MleeButton_3;
-    public TextMeshProUGUI MleeButtonText_3;
-    public Button MleeButton_4;
-    public TextMeshProUGUI MleeButtonText_4;
+    public GameObject E_MleeBox;
+    public GameObject P_MleeBox;
+
+    public Button P_Select1;
+    public TextMeshProUGUI P_SelectText1;
+    public Button E_Select1;
+    public TextMeshProUGUI E_SelectText1;
+    public Button P_Select2;
+    public TextMeshProUGUI P_SelectText2;
+    public Button E_Select2;
+    public TextMeshProUGUI E_SelectText2;
+
+    public Button P_Arm1;
+    public Button P_Arm2;
+    public Button P_Head;
+    public Button P_Body;
+    public Button P_Leg;
+
+    public Button E_Arm1;
+    public Button E_Arm2;
+    public Button E_Head;
+    public Button E_Body;
+    public Button E_Leg;
+
+    public GameObject P_EV_Arm;
+    public GameObject P_DF_Arm;
+    public GameObject P_EV_Head;
+    public GameObject P_DF_Head;
+    public GameObject P_EV_Body;
+    public GameObject P_DF_Body;
+    public GameObject P_EV_Leg;
+    public GameObject P_DF_Leg;
+
+    public GameObject E_EV_Arm;
+    public GameObject E_DF_Arm;
+    public GameObject E_EV_Head;
+    public GameObject E_DF_Head;
+    public GameObject E_EV_Body;
+    public GameObject E_DF_Body;
+    public GameObject E_EV_Leg;
+    public GameObject E_DF_Leg;
     #endregion
 
     #region 스타트, 업데이트, 배틀루프
@@ -405,24 +438,24 @@ public class BattleManager : MonoBehaviour
     {
         float Rv = UnityEngine.Random.value;
 
-        if(Rv < bodyBonuses[TargetPart].partbreak)
+        if (Rv < bodyBonuses[TargetPart].partbreak)
         {
             switch (TargetPart)
             {
                 case BodyPartSlot.Head:
-                    defender.Head_Hp --;
+                    defender.Head_Hp--;
                     Mathf.Clamp(defender.Head_Hp, 0, 3);
                     break;
                 case BodyPartSlot.Body:
-                    defender.Body_Hp --;
+                    defender.Body_Hp--;
                     Mathf.Clamp(defender.Body_Hp, 0, 3);
                     break;
                 case BodyPartSlot.Arms:
-                    defender.Arm_Hp --;
+                    defender.Arm_Hp--;
                     Mathf.Clamp(defender.Arm_Hp, 0, 3);
                     break;
                 case BodyPartSlot.Legs:
-                    defender.Leg_Hp --;
+                    defender.Leg_Hp--;
                     Mathf.Clamp(defender.Leg_Hp, 0, 3);
                     break;
             }
@@ -471,7 +504,7 @@ public class BattleManager : MonoBehaviour
         TextMeshProUGUI targetText = TargetingAlarmBox.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
         string partText = "";
 
-        switch(TargetPart)
+        switch (TargetPart)
         {
             case BodyPartSlot.Head:
                 partText = "머리";
@@ -517,7 +550,7 @@ public class BattleManager : MonoBehaviour
                 ShotDamageMethod(attacker, defender);
                 NowParHp = Partnow(defender).hp;
                 PartBreak(defender);
-                if(NowParHp != Partnow(defender).hp)
+                if (NowParHp != Partnow(defender).hp)
                 {
                     partmassage = Partnow(defender).part + " 파괴!";
                 }
@@ -544,14 +577,14 @@ public class BattleManager : MonoBehaviour
             yield return new WaitForSeconds(ShotRateSpeed);
             Enemy_WithMarkers[TargetEnemy_Int].animate.GetComponent<Image>().color = Color.blue;
         }
-        if(beforePartHP != Partnow(defender).hp)
+        if (beforePartHP != Partnow(defender).hp)
         {
             beforePartHP -= Partnow(defender).hp;
             isPartBreak = Partnow(defender).part + $" -{beforePartHP}";
         }
         hnBoxtext.text = $"명중! x{HowManyShot}";
         hnBoxColor.color = Color.green;
-        if(HowManyShot == 0)
+        if (HowManyShot == 0)
         {
             hnBoxtext.text = $"빗나감!";
             hnBoxColor.color = Color.yellow;
@@ -654,7 +687,7 @@ public class BattleManager : MonoBehaviour
         }
         hnBoxtext.text = $"피격! x{HowManyShot}";
         hnBoxColor.color = Color.red;
-        if(HowManyShot == 0)
+        if (HowManyShot == 0)
         {
             hnBoxtext.text = $"회피!";
             hnBoxColor.color = Color.green;
@@ -1089,6 +1122,29 @@ public class BattleManager : MonoBehaviour
     #endregion
 
     #region 밀리 공격
+    Dictionary<BodyPartSlot, Button> P_MleePartButton_List;
+    Dictionary<BodyPartSlot, Button> E_MleePartButton_List;
+
+    Dictionary<BodyPartSlot, GameObject> P_EV_Object_List;
+    Dictionary<BodyPartSlot, GameObject> P_DF_Object_List;
+    Dictionary<BodyPartSlot, GameObject> E_EV_Object_List;
+    Dictionary<BodyPartSlot, GameObject> E_DF_Object_List;
+
+    public Dictionary<BodyPartSlot, (float Buff, GameObject SlotObject)> P_EV_List;
+    public Dictionary<BodyPartSlot, (float Buff, GameObject SlotObject)> P_DF_List;
+    public Dictionary<BodyPartSlot, (float Buff, GameObject SlotObject)> E_EV_List;
+    public Dictionary<BodyPartSlot, (float Buff, GameObject SlotObject)> E_DF_List;
+
+    BodyPartSlot P_TargetMleePart;
+    BodyPartSlot E_TargetMleePart;
+
+    BodyPartSlot P_TargetMleePart_One;
+    BodyPartSlot P_TargetMleePart_Two;
+
+    BodyPartSlot E_TargetMleePart_One;
+    BodyPartSlot E_TargetMleePart_Two;
+
+    bool IsMleePartChoice;
     public IEnumerator MleePhase(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy, int ShouldBeEnemy_int)
     {
         // 대기 들어가기 전 반드시 초기화
@@ -1098,6 +1154,9 @@ public class BattleManager : MonoBehaviour
         //최종 선택지
         List<IMlee> PlayerSelectedMleeList = new();
         List<IMlee> EnemySelectedMleeList = new();
+
+        SetUpMleePartList();
+        UpdateEvAndDF();
 
         marker0.gameObject.SetActive(false);
         marker1.gameObject.SetActive(false);
@@ -1109,7 +1168,27 @@ public class BattleManager : MonoBehaviour
         marker7.gameObject.SetActive(false);
         minPoint.gameObject.SetActive(false);
 
+        P_MleeBox.SetActive(true);
+        E_MleeBox.SetActive(true);
+
         // 선택지 표시(UI는 네가 연결)
+
+        Dictionary<BodyPartSlot, Button> P_MleePartButton_List = new Dictionary<BodyPartSlot, Button>()
+        {
+            { BodyPartSlot.Arms, P_Arm1},
+            { BodyPartSlot.Arms2, P_Arm2},
+            { BodyPartSlot.Head, P_Head},
+            { BodyPartSlot.Body, P_Body},
+            { BodyPartSlot.Legs, P_Leg}
+        };
+        Dictionary<BodyPartSlot, Button> E_MleePartButton_List = new Dictionary<BodyPartSlot, Button>()
+        {
+            { BodyPartSlot.Arms, E_Arm1},
+            { BodyPartSlot.Arms2, E_Arm2},
+            { BodyPartSlot.Head, E_Head},
+            { BodyPartSlot.Body, E_Body},
+            { BodyPartSlot.Legs, E_Leg}
+        };
 
         TalkManager.Instance.ShowTemp($"{ShouldBeEnemy.Name}은(는) 당신 바로 앞에 있다! 무엇을 하지?");
 
@@ -1135,6 +1214,7 @@ public class BattleManager : MonoBehaviour
             Debug.Log(MleeAtkSelect.ToArray());
 
             buttonchoice.SpawnButtons(MleeAtkSelect.ToArray());
+
             yield return new WaitUntil(() => buttonchoice.choicetrue);
 
             if (i == 1)
@@ -1146,15 +1226,33 @@ public class BattleManager : MonoBehaviour
 
             yield return new WaitUntil(() => buttonchoice.choicetrue);
 
+            //이 부분 부터 부위 선택 시간
+            //부위 버튼 동적 생성 매서드를 만들어야 함
+            yield return StartCoroutine(MleePartChoice(PlayerSelectedMleeList[i].Type));
+
             if (i == 0)
             {
-                MleeButton_1.gameObject.SetActive(true);
-                MleeButtonText_1.text = PlayerSelectedMleeList[i].Name;
+                P_Select1.gameObject.SetActive(true);
+                P_SelectText1.text = PlayerSelectedMleeList[i].Name;
+                MSColorUpdateMethod(P_Select1.gameObject, PlayerSelectedMleeList[i].color);
+                SelectMleeChild_PartText(P_Select1.gameObject, P_TargetMleePart);
+
+                ApplyEVorDF(true, PlayerSelectedMleeList[i].Type, P_TargetMleePart);
+                UpdateEvAndDF();
+
+                P_TargetMleePart_One = P_TargetMleePart;
             }
             else
             {
-                MleeButton_3.gameObject.SetActive(true);
-                MleeButtonText_3.text = PlayerSelectedMleeList[i].Name;
+                P_Select2.gameObject.SetActive(true);
+                P_SelectText2.text = PlayerSelectedMleeList[i].Name;
+                MSColorUpdateMethod(P_Select2.gameObject, PlayerSelectedMleeList[i].color);
+                SelectMleeChild_PartText(P_Select2.gameObject, P_TargetMleePart);
+
+                ApplyEVorDF(true, PlayerSelectedMleeList[i].Type, P_TargetMleePart);
+                UpdateEvAndDF();
+
+                P_TargetMleePart_Two = P_TargetMleePart;
 
                 Debug.Log(MleeAtkSelect[i]);
             }
@@ -1164,16 +1262,32 @@ public class BattleManager : MonoBehaviour
             yield return ShowThenWait($"당신은 {PlayerSelectedMleeList[i].Name}을(를) 했다!");
 
             EnemySelectedMleeList.Add(RandomMleeByWeight(ShouldBeEnemy.ActiveSkills));
+            //여기에 적의 부위 선택을 넣어야 함
+            EnemyMleePartSelectAi(EnemySelectedMleeList[i].Type, PlayerSelectedMleeList[i].Type, P_TargetMleePart);
 
             if (i == 0)
             {
-                MleeButton_2.gameObject.SetActive(true);
-                MleeButtonText_2.text = EnemySelectedMleeList[i].Name;
+                E_Select1.gameObject.SetActive(true);
+                E_SelectText1.text = EnemySelectedMleeList[i].Name;
+                MSColorUpdateMethod(E_Select1.gameObject, EnemySelectedMleeList[i].color);
+                SelectMleeChild_PartText(E_Select1.gameObject, E_TargetMleePart);
+
+                ApplyEVorDF(false, EnemySelectedMleeList[i].Type, E_TargetMleePart);
+                UpdateEvAndDF();
+
+                E_TargetMleePart_One = E_TargetMleePart;
             }
             else
             {
-                MleeButton_4.gameObject.SetActive(true);
-                MleeButtonText_4.text = EnemySelectedMleeList[i].Name;
+                E_Select2.gameObject.SetActive(true);
+                E_SelectText2.text = EnemySelectedMleeList[i].Name;
+                MSColorUpdateMethod(E_Select2.gameObject, EnemySelectedMleeList[i].color);
+                SelectMleeChild_PartText(E_Select2.gameObject, E_TargetMleePart);
+
+                ApplyEVorDF(false, EnemySelectedMleeList[i].Type, E_TargetMleePart);
+                UpdateEvAndDF();
+
+                E_TargetMleePart_Two = E_TargetMleePart;
             }
             yield return ShowThenWait($"당신은 {ShouldBeEnemy.Name}의 움직임을 읽었다! {ShouldBeEnemy.Name}는 {EnemySelectedMleeList[i].Name}을(를) 했다");
         }
@@ -1181,33 +1295,6 @@ public class BattleManager : MonoBehaviour
         // 플레이어, 적 각각 두 번씩 주고받기
         for (int i = 0; i < 2; i++)
         {
-            float RandX = UnityEngine.Random.value * 100;
-
-            float enemyBaseHitPer = EnemySelectedMleeList[i].HitChance(ShouldBeEnemy);
-            float playerModHitPer = PlayerSelectedMleeList[0].MleeModifiers[EnemySelectedMleeList[0].Type].HitChancePer *
-                                    PlayerSelectedMleeList[1].MleeModifiers[EnemySelectedMleeList[1].Type].HitChancePer;
-            int totalEnemyHitPer = Mathf.RoundToInt(enemyBaseHitPer * playerModHitPer);
-
-            if (RandX < totalEnemyHitPer)
-            {
-                Debug.Log(RandX);
-                Debug.Log(totalEnemyHitPer);
-
-                float enemyBase = EnemySelectedMleeList[i].Damage(ShouldBeEnemy);
-                float playerMod = PlayerSelectedMleeList[0].MleeModifiers[EnemySelectedMleeList[0].Type].DamagePer *
-                                  PlayerSelectedMleeList[1].MleeModifiers[EnemySelectedMleeList[1].Type].DamagePer;
-                int totalEnemy = Mathf.RoundToInt(enemyBase * playerMod);
-
-                ShouldBePlayer.CurrentHp -= totalEnemy;
-                PlayerSlider.value = (float)ShouldBePlayer.CurrentHp / ShouldBePlayer.HP;
-
-                yield return ShowThenWait($"{ShouldBeEnemy.Name}의 {EnemySelectedMleeList[i].Name}! {ShouldBePlayer.Name}은 {totalEnemy} 피해를 입었다! 확률 : { totalEnemyHitPer } 원 데미지:{ enemyBase } 기술 연계 : {playerMod}");
-            }
-            else
-            {
-                yield return ShowThenWait($"{ShouldBeEnemy.Name}의 {EnemySelectedMleeList[i].Name}은 빗나갔다! 확률 : { totalEnemyHitPer }");
-            }
-
             float RandY = UnityEngine.Random.value * 100;
 
             float PlayerBaseHitPer = PlayerSelectedMleeList[i].HitChance(ShouldBePlayer);
@@ -1228,20 +1315,76 @@ public class BattleManager : MonoBehaviour
                 ShouldBeEnemy.CurrentHp -= totalPlayer;
                 Enemy_WithMarkers[ShouldBeEnemy_int].slider.value = (float)ShouldBeEnemy.CurrentHp / ShouldBeEnemy.HP;
 
+                if (PlayerSelectedMleeList[i].Type == MleeATKType.PowerATK || PlayerSelectedMleeList[i].Type == MleeATKType.SpeedATK)
+                {
+                    if (i == 0)
+                    {
+                        yield return StartCoroutine(FlickerParts(false, P_TargetMleePart_One));
+                    }
+                    else
+                    {
+                        yield return StartCoroutine(FlickerParts(false, P_TargetMleePart_Two));
+                    }
+                }
+
                 yield return ShowThenWait($"{ShouldBePlayer.Name}의 {PlayerSelectedMleeList[i].Name}! {ShouldBeEnemy.Name}은(는) {totalPlayer} 피해를 입었다! 확률 : { totalPlayerHitPer } 원 데미지:{ playerBase } 기술 연계 : { enemyMod }");
             }
             else
             {
                 yield return ShowThenWait($"{ShouldBePlayer.Name}의 {PlayerSelectedMleeList[i].Name}은 빗나갔다! 확률 : { totalPlayerHitPer }");
             }
+
+            float RandX = UnityEngine.Random.value * 100;
+
+            float enemyBaseHitPer = EnemySelectedMleeList[i].HitChance(ShouldBeEnemy);
+            float playerModHitPer = PlayerSelectedMleeList[0].MleeModifiers[EnemySelectedMleeList[0].Type].HitChancePer *
+                                    PlayerSelectedMleeList[1].MleeModifiers[EnemySelectedMleeList[1].Type].HitChancePer;
+            int totalEnemyHitPer = Mathf.RoundToInt(enemyBaseHitPer * playerModHitPer);
+
+            if (RandX < totalEnemyHitPer)
+            {
+                Debug.Log(RandX);
+                Debug.Log(totalEnemyHitPer);
+
+                float enemyBase = EnemySelectedMleeList[i].Damage(ShouldBeEnemy);
+                float playerMod = PlayerSelectedMleeList[0].MleeModifiers[EnemySelectedMleeList[0].Type].DamagePer *
+                                  PlayerSelectedMleeList[1].MleeModifiers[EnemySelectedMleeList[1].Type].DamagePer;
+                int totalEnemy = Mathf.RoundToInt(enemyBase * playerMod);
+
+                ShouldBePlayer.CurrentHp -= totalEnemy;
+                PlayerSlider.value = (float)ShouldBePlayer.CurrentHp / ShouldBePlayer.HP;
+
+                if (EnemySelectedMleeList[i].Type == MleeATKType.PowerATK || EnemySelectedMleeList[i].Type == MleeATKType.SpeedATK)
+                {
+                    if (i == 0)
+                    {
+                        yield return StartCoroutine(FlickerParts(true, E_TargetMleePart_One));
+                    }
+                    else
+                    {
+                        yield return StartCoroutine(FlickerParts(true, E_TargetMleePart_Two));
+                    }
+                }
+
+                yield return ShowThenWait($"{ShouldBeEnemy.Name}의 {EnemySelectedMleeList[i].Name}! {ShouldBePlayer.Name}은 {totalEnemy} 피해를 입었다! 확률 : { totalEnemyHitPer } 원 데미지:{ enemyBase } 기술 연계 : {playerMod}");
+            }
+            else
+            {
+                yield return ShowThenWait($"{ShouldBeEnemy.Name}의 {EnemySelectedMleeList[i].Name}은 빗나갔다! 확률 : { totalEnemyHitPer }");
+            }
+
+            
         }
 
-        MleeButton_1.gameObject.SetActive(false);
-        MleeButton_2.gameObject.SetActive(false);
-        MleeButton_3.gameObject.SetActive(false);
-        MleeButton_4.gameObject.SetActive(false);
+        P_Select1.gameObject.SetActive(false);
+        E_Select1.gameObject.SetActive(false);
+        P_Select2.gameObject.SetActive(false);
+        E_Select2.gameObject.SetActive(false);
 
         minPoint.gameObject.SetActive(true);
+
+        P_MleeBox.SetActive(false);
+        E_MleeBox.SetActive(false);
         /*
         for (int i = 0; i < Enemy_WithMarkers.Count; i++)
         {
@@ -1272,7 +1415,450 @@ public class BattleManager : MonoBehaviour
             yield break;
         }
     }
+    public void MleeButtonUpdate(MleeATKType mleeType, bool choiced)
+    {
+        Dictionary<BodyPartSlot, Button> P_MleePartButton_List = new Dictionary<BodyPartSlot, Button>()
+        {
+            { BodyPartSlot.Arms, P_Arm1},
+            { BodyPartSlot.Arms2, P_Arm2},
+            { BodyPartSlot.Head, P_Head},
+            { BodyPartSlot.Body, P_Body},
+            { BodyPartSlot.Legs, P_Leg}
+        };
+        Dictionary<BodyPartSlot, Button> E_MleePartButton_List = new Dictionary<BodyPartSlot, Button>()
+        {
+            { BodyPartSlot.Arms, E_Arm1},
+            { BodyPartSlot.Arms2, E_Arm2},
+            { BodyPartSlot.Head, E_Head},
+            { BodyPartSlot.Body, E_Body},
+            { BodyPartSlot.Legs, E_Leg}
+        };
 
+        if (choiced == false)
+        {
+            IsMleePartChoice = false;
+
+            foreach (var buttons in P_MleePartButton_List)
+            {
+                buttons.Value.onClick.RemoveAllListeners();
+            }
+            foreach (var buttons in E_MleePartButton_List)
+            {
+                buttons.Value.onClick.RemoveAllListeners();
+            }
+
+            List<BodyPartSlot> plist = new()
+            {
+                BodyPartSlot.Arms,
+                BodyPartSlot.Arms2,
+                BodyPartSlot.Head,
+                BodyPartSlot.Body,
+                BodyPartSlot.Legs
+            };
+
+            switch (mleeType)
+            {
+                case MleeATKType.PowerATK:
+                    for (int i = 0; i < 5; i++)
+                    {
+                        var part = plist[i];
+                        Button B = E_MleePartButton_List[part];
+                        B.onClick.AddListener(() => 
+                        {
+                            P_TargetMleePart = part;
+                            if (P_TargetMleePart == BodyPartSlot.Arms2) { P_TargetMleePart = BodyPartSlot.Arms; } 
+                        });
+                        B.onClick.AddListener(() => IsMleePartChoice = true);
+                    }
+                    break;
+                case MleeATKType.SpeedATK:
+                    for (int i = 0; i < 5; i++)
+                    {
+                        var part = plist[i];
+                        Button B = E_MleePartButton_List[part];
+                        B.onClick.AddListener(() =>
+                        {
+                            P_TargetMleePart = part;
+                            if (P_TargetMleePart == BodyPartSlot.Arms2) { P_TargetMleePart = BodyPartSlot.Arms; }
+                        });
+                        B.onClick.AddListener(() => IsMleePartChoice = true);
+                    }
+                    break;
+                #region upper lower 선택
+                /*
+                E_MleePartButton_List[BodyPartSlot.Head].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Upper);
+                E_MleePartButton_List[BodyPartSlot.Arms].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Upper);
+                E_MleePartButton_List[BodyPartSlot.Arms2].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Upper);
+                E_MleePartButton_List[BodyPartSlot.Body].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Lower);
+                E_MleePartButton_List[BodyPartSlot.Legs].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Lower);
+                for (int i = 0; i < 5; i++)
+                {
+                    Button B = E_MleePartButton_List[plist[i]];
+                    B.onClick.AddListener(() => IsMleePartChoice = true);
+                }
+                break;
+                */
+                #endregion
+                case MleeATKType.Defence:
+                    P_MleePartButton_List[BodyPartSlot.Head].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Upper);
+                    P_MleePartButton_List[BodyPartSlot.Arms].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Upper);
+                    P_MleePartButton_List[BodyPartSlot.Arms2].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Upper);
+                    P_MleePartButton_List[BodyPartSlot.Body].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Lower);
+                    P_MleePartButton_List[BodyPartSlot.Legs].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Lower);
+                    for (int i = 0; i < 5; i++)
+                    {
+                        Button B = P_MleePartButton_List[plist[i]];
+                        B.onClick.AddListener(() => IsMleePartChoice = true);
+                    }
+                    break;
+                case MleeATKType.Dodge:
+                    P_MleePartButton_List[BodyPartSlot.Head].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Upper);
+                    P_MleePartButton_List[BodyPartSlot.Arms].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Upper);
+                    P_MleePartButton_List[BodyPartSlot.Arms2].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Upper);
+                    P_MleePartButton_List[BodyPartSlot.Body].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Lower);
+                    P_MleePartButton_List[BodyPartSlot.Legs].onClick.AddListener(() => P_TargetMleePart = BodyPartSlot.Lower);
+                    for (int i = 0; i < 5; i++)
+                    {
+                        Button B = P_MleePartButton_List[plist[i]];
+                        B.onClick.AddListener(() => IsMleePartChoice = true);
+                    }
+                    break;
+            }
+        }
+        else if (choiced == true)
+        {
+            foreach (var buttons in P_MleePartButton_List)
+            {
+                buttons.Value.onClick.RemoveAllListeners();
+            }
+            foreach (var buttons in E_MleePartButton_List)
+            {
+                buttons.Value.onClick.RemoveAllListeners();
+            }
+        }
+    }
+    // 깜빡임 코루틴은 앞서 만든 Flicker(Image target)을 사용
+    IEnumerator FlickerParts(bool isPlayer, BodyPartSlot slot)
+    {
+        Dictionary<BodyPartSlot, Button> P_MleePartButton_List = new Dictionary<BodyPartSlot, Button>()
+        {
+            { BodyPartSlot.Arms, P_Arm1},
+            { BodyPartSlot.Arms2, P_Arm2},
+            { BodyPartSlot.Head, P_Head},
+            { BodyPartSlot.Body, P_Body},
+            { BodyPartSlot.Legs, P_Leg}
+        };
+        Dictionary<BodyPartSlot, Button> E_MleePartButton_List = new Dictionary<BodyPartSlot, Button>()
+        {
+            { BodyPartSlot.Arms, E_Arm1},
+            { BodyPartSlot.Arms2, E_Arm2},
+            { BodyPartSlot.Head, E_Head},
+            { BodyPartSlot.Body, E_Body},
+            { BodyPartSlot.Legs, E_Leg}
+        };
+
+        var dict = isPlayer ? P_MleePartButton_List : E_MleePartButton_List;
+
+        // 상·하 묶음 정의
+        List<BodyPartSlot> upper = new() { BodyPartSlot.Head, BodyPartSlot.Arms, BodyPartSlot.Arms2 };
+        List<BodyPartSlot> lower = new() { BodyPartSlot.Body, BodyPartSlot.Legs };
+        List<BodyPartSlot> arm = new() { BodyPartSlot.Arms, BodyPartSlot.Arms2 };
+
+        IEnumerable<BodyPartSlot> targets = slot switch
+        {
+            BodyPartSlot.Upper => upper,
+            BodyPartSlot.Lower => lower,
+            BodyPartSlot.Arms => arm,
+            BodyPartSlot.Arms2 => arm,
+            _ => new[] { slot }
+        };
+
+        // 동시에 깜빡이기: 기다리지 않고 코루틴 시작만
+        foreach (var part in targets)
+        {
+            if (!dict.TryGetValue(part, out var btn) || btn == null) continue;
+            var img = btn.GetComponent<Image>();
+            if (img != null) StartCoroutine(Flicker(img));
+        }
+        yield break;
+    }
+    void SetUpMleePartList()
+    {
+        P_EV_List = new()
+        {
+            { BodyPartSlot.Head, (1, P_EV_Head) },
+            { BodyPartSlot.Arms, (1, P_EV_Arm) },
+            { BodyPartSlot.Legs, (1, P_EV_Leg) },
+            { BodyPartSlot.Body, (1, P_EV_Body) }
+        };
+        P_DF_List = new()
+        {
+            { BodyPartSlot.Head, (1, P_DF_Head) },
+            { BodyPartSlot.Arms, (1, P_DF_Arm) },
+            { BodyPartSlot.Legs, (1, P_DF_Leg) },
+            { BodyPartSlot.Body, (1, P_DF_Body) }
+        };
+        E_EV_List = new()
+        {
+            { BodyPartSlot.Head, (1, E_EV_Head) },
+            { BodyPartSlot.Arms, (1, E_EV_Arm) },
+            { BodyPartSlot.Legs, (1, E_EV_Leg) },
+            { BodyPartSlot.Body, (1, E_EV_Body) }
+        };
+        E_DF_List = new()
+        {
+            { BodyPartSlot.Head, (1, E_DF_Head) },
+            { BodyPartSlot.Arms, (1, E_DF_Arm) },
+            { BodyPartSlot.Legs, (1, E_DF_Leg) },
+            { BodyPartSlot.Body, (1, E_DF_Body) }
+        };
+    }
+    void UpdateEvAndDF()
+    {
+        foreach (var ttext in P_EV_List)
+        {
+            TextMeshProUGUI P_EVtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
+            float v = ttext.Value.Buff;
+            P_EVtext.text = $"회피 x{v}";
+        }
+        foreach (var ttext in P_DF_List)
+        {
+            TextMeshProUGUI P_DFtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
+            float v = ttext.Value.Buff;
+            P_DFtext.text = $"방어 x{v}";
+        }
+        foreach (var ttext in E_EV_List)
+        {
+            TextMeshProUGUI E_EVtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
+            float v = ttext.Value.Buff;
+            E_EVtext.text = $"회피 x{v}";
+        }
+        foreach (var ttext in E_DF_List)
+        {
+            TextMeshProUGUI E_DFtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
+            float v = ttext.Value.Buff;
+            E_DFtext.text = $"방어 x{v}";
+        }
+    }
+    void ApplyEVorDF(bool isPlayer, MleeATKType type, BodyPartSlot targetpart)
+    {
+        if(isPlayer == true)
+        {
+            if(type == MleeATKType.Dodge)
+            {
+                if(targetpart == BodyPartSlot.Upper)
+                {
+                    var entry = P_EV_List[BodyPartSlot.Head];
+                    entry.Buff *= 1.5f;
+                    P_EV_List[BodyPartSlot.Head] = entry;
+                    var entry2 = P_EV_List[BodyPartSlot.Arms];
+                    entry2.Buff *= 1.5f;
+                    P_EV_List[BodyPartSlot.Arms] = entry2;
+                }
+                else if (targetpart == BodyPartSlot.Lower)
+                {
+                    var entry = P_EV_List[BodyPartSlot.Body];
+                    entry.Buff *= 1.5f;
+                    P_EV_List[BodyPartSlot.Body] = entry;
+                    var entry2 = P_EV_List[BodyPartSlot.Legs];
+                    entry2.Buff *= 1.5f;
+                    P_EV_List[BodyPartSlot.Legs] = entry2;
+                }
+            }
+            if (type == MleeATKType.Defence)
+            {
+                if (targetpart == BodyPartSlot.Upper)
+                {
+                    var entry = P_DF_List[BodyPartSlot.Head];
+                    entry.Buff *= 1.5f;
+                    P_DF_List[BodyPartSlot.Head] = entry;
+                    var entry2 = P_DF_List[BodyPartSlot.Arms];
+                    entry2.Buff *= 1.5f;
+                    P_DF_List[BodyPartSlot.Arms] = entry2;
+                }
+                else if (targetpart == BodyPartSlot.Lower)
+                {
+                    var entry = P_DF_List[BodyPartSlot.Body];
+                    entry.Buff *= 1.5f;
+                    P_DF_List[BodyPartSlot.Body] = entry;
+                    var entry2 = P_DF_List[BodyPartSlot.Legs];
+                    entry2.Buff *= 1.5f;
+                    P_DF_List[BodyPartSlot.Legs] = entry2;
+                }
+            }
+        }
+        else if (isPlayer == false)
+        {
+            if (type == MleeATKType.Dodge)
+            {
+                if (targetpart == BodyPartSlot.Upper)
+                {
+                    var entry = E_EV_List[BodyPartSlot.Head];
+                    entry.Buff *= 1.5f;
+                    E_EV_List[BodyPartSlot.Head] = entry;
+                    var entry2 = E_EV_List[BodyPartSlot.Arms];
+                    entry2.Buff *= 1.5f;
+                    E_EV_List[BodyPartSlot.Arms] = entry2;
+                }
+                else if (targetpart == BodyPartSlot.Lower)
+                {
+                    var entry = E_EV_List[BodyPartSlot.Body];
+                    entry.Buff *= 1.5f;
+                    E_EV_List[BodyPartSlot.Body] = entry;
+                    var entry2 = E_EV_List[BodyPartSlot.Legs];
+                    entry2.Buff *= 1.5f;
+                    E_EV_List[BodyPartSlot.Legs] = entry2;
+                }
+            }
+            if (type == MleeATKType.Defence)
+            {
+                if (targetpart == BodyPartSlot.Upper)
+                {
+                    var entry = E_DF_List[BodyPartSlot.Head];
+                    entry.Buff *= 1.5f;
+                    E_DF_List[BodyPartSlot.Head] = entry;
+                    var entry2 = E_DF_List[BodyPartSlot.Arms];
+                    entry2.Buff *= 1.5f;
+                    E_DF_List[BodyPartSlot.Arms] = entry2;
+                }
+                else if (targetpart == BodyPartSlot.Lower)
+                {
+                    var entry = E_DF_List[BodyPartSlot.Body];
+                    entry.Buff *= 1.5f;
+                    E_DF_List[BodyPartSlot.Body] = entry;
+                    var entry2 = E_DF_List[BodyPartSlot.Legs];
+                    entry2.Buff *= 1.5f;
+                    E_DF_List[BodyPartSlot.Legs] = entry2;
+                }
+            }
+        }
+    }
+    public IEnumerator MleePartChoice(MleeATKType mleeType)
+    {
+        // 선택 초기화
+        IsMleePartChoice = false;
+        P_TargetMleePart = BodyPartSlot.Body; // 디폴트 값
+
+        // 버튼 리스너 연결 (공격자가 누구냐에 따라 P/E 버튼 세트 선택)
+        MleeButtonUpdate(mleeType, false);
+        TalkManager.Instance.ShowTemp($"어디를?");
+        // 선택이 들어올 때까지 대기
+        yield return new WaitUntil(() => IsMleePartChoice);
+
+        MleeButtonUpdate(mleeType, true);
+
+        // 여기서 TargetMleePart에 최종 선택 결과가 들어 있음
+        // 필요하면 UI 비활성화
+        Debug.Log(P_TargetMleePart);
+    }
+    public void SelectMleeChild_PartText(GameObject parentSelect, BodyPartSlot part)
+    {
+        GameObject PartTextBox = parentSelect.transform.GetChild(0).gameObject;
+        TextMeshProUGUI PartText = PartTextBox.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
+
+        PartText.text = BodyPartToString(part);
+    }
+    public IEnumerator Flicker(Image target)
+    {
+        if (target == null) yield break;
+
+        Color original = target.color;
+        Color off = Color.black;
+        const float interval = 0.1f;
+
+        for (int i = 0; i < 5; i++)
+        {
+            target.color = off;
+            yield return new WaitForSeconds(interval);
+            target.color = original;
+            yield return new WaitForSeconds(interval);
+        }
+
+        target.color = original; // 안전하게 원색 복원
+    }
+    public void MSColorUpdateMethod(GameObject select, Color MleeColor)
+    {
+        select.gameObject.GetComponent<Image>().color = MleeColor;
+    }
+    public void EnemyMleePartSelectAi(MleeATKType E_Mleetype, MleeATKType P_MleeType, BodyPartSlot P_Target)
+    {
+        if (E_Mleetype == MleeATKType.Defence && (P_MleeType == MleeATKType.PowerATK || P_MleeType == MleeATKType.SpeedATK))
+        {
+            if (P_Target == BodyPartSlot.Upper || P_Target == BodyPartSlot.Arms || P_Target == BodyPartSlot.Arms2 || P_Target == BodyPartSlot.Head)
+            {
+                E_TargetMleePart = BodyPartSlot.Upper;
+            }
+            else
+            {
+                E_TargetMleePart = BodyPartSlot.Lower;
+            }
+        }
+        else if (E_Mleetype == MleeATKType.Dodge && (P_MleeType == MleeATKType.PowerATK || P_MleeType == MleeATKType.SpeedATK))
+        {
+            if (P_Target == BodyPartSlot.Upper || P_Target == BodyPartSlot.Arms || P_Target == BodyPartSlot.Arms2 || P_Target == BodyPartSlot.Head)
+            {
+                E_TargetMleePart = BodyPartSlot.Upper;
+            }
+            else
+            {
+                E_TargetMleePart = BodyPartSlot.Lower;
+            }
+        }
+        else if(E_Mleetype == MleeATKType.SpeedATK && (P_MleeType == MleeATKType.Defence || P_MleeType == MleeATKType.Dodge))
+        {
+            if (P_Target == BodyPartSlot.Upper || P_Target == BodyPartSlot.Arms || P_Target == BodyPartSlot.Arms2 || P_Target == BodyPartSlot.Head)
+            {
+                List<BodyPartSlot> LowerRandom = new() { BodyPartSlot.Legs, BodyPartSlot.Body };
+                int ranX = UnityEngine.Random.Range(0, 2);
+                E_TargetMleePart = LowerRandom[ranX];
+            }
+            else
+            {
+                List<BodyPartSlot> UpperRandom = new() { BodyPartSlot.Head, BodyPartSlot.Arms };
+                int ranX = UnityEngine.Random.Range(0, 2);
+                E_TargetMleePart = UpperRandom[ranX];
+            }
+        }
+        else if(E_Mleetype == MleeATKType.PowerATK && (P_MleeType == MleeATKType.Defence || P_MleeType == MleeATKType.Dodge))
+        {
+            if (P_Target == BodyPartSlot.Upper || P_Target == BodyPartSlot.Arms || P_Target == BodyPartSlot.Arms2 || P_Target == BodyPartSlot.Head)
+            {
+                List<BodyPartSlot> LowerRandom = new() { BodyPartSlot.Legs, BodyPartSlot.Body };
+                int ranX = UnityEngine.Random.Range(0, 2);
+                E_TargetMleePart = LowerRandom[ranX];
+            }
+            else
+            {
+                List<BodyPartSlot> UpperRandom = new() { BodyPartSlot.Head, BodyPartSlot.Arms };
+                int ranX = UnityEngine.Random.Range(0, 2);
+                E_TargetMleePart = UpperRandom[ranX];
+            }
+        }
+        else if (E_Mleetype == MleeATKType.Defence && (P_MleeType == MleeATKType.Defence || P_MleeType == MleeATKType.Dodge))
+        {
+            List<BodyPartSlot> UpperRandom = new() { BodyPartSlot.Upper, BodyPartSlot.Lower };
+            int ranX = UnityEngine.Random.Range(0, 2);
+            E_TargetMleePart = UpperRandom[ranX];
+        }
+        else if (E_Mleetype == MleeATKType.Dodge && (P_MleeType == MleeATKType.Defence || P_MleeType == MleeATKType.Dodge))
+        {
+            List<BodyPartSlot> UpperRandom = new() { BodyPartSlot.Upper, BodyPartSlot.Lower };
+            int ranX = UnityEngine.Random.Range(0, 2);
+            E_TargetMleePart = UpperRandom[ranX];
+        }
+        else if (E_Mleetype == MleeATKType.SpeedATK && (P_MleeType == MleeATKType.PowerATK || P_MleeType == MleeATKType.SpeedATK))
+        {
+            List<BodyPartSlot> UpperRandom = new() { BodyPartSlot.Upper, BodyPartSlot.Lower };
+            int ranX = UnityEngine.Random.Range(0, 2);
+            E_TargetMleePart = UpperRandom[ranX];
+        }
+        else if (E_Mleetype == MleeATKType.PowerATK && (P_MleeType == MleeATKType.PowerATK || P_MleeType == MleeATKType.SpeedATK))
+        {
+            List<BodyPartSlot> UpperRandom = new() { BodyPartSlot.Head, BodyPartSlot.Body, BodyPartSlot.Legs, BodyPartSlot.Arms };
+            int ranX = UnityEngine.Random.Range(0, 4);
+            E_TargetMleePart = UpperRandom[ranX];
+        }
+    }
     public static IMlee RandomMleeByWeight(IList<IMlee> ActiveMlees)
     {
         float Level = 0; //누적합 계싼
@@ -1298,6 +1884,29 @@ public class BattleManager : MonoBehaviour
         }
         // 부동오차 방지용 폴백
         return ActiveMlees[ActiveMlees.Count - 1];
+    }
+
+    public string BodyPartToString(BodyPartSlot part)
+    {
+        switch (part)
+        {
+            case BodyPartSlot.Head:
+                return "머리";
+            case BodyPartSlot.Body:
+                return "몸통";
+            case BodyPartSlot.Arms:
+                return "팔";
+            case BodyPartSlot.Arms2:
+                return "팔";
+            case BodyPartSlot.Legs:
+                return "다리";
+            case BodyPartSlot.Upper:
+                return "상단";
+            case BodyPartSlot.Lower:
+                return "하단";
+            default:
+                return "";
+        }
     }
     #endregion
 
@@ -1425,10 +2034,10 @@ public class BattleManager : MonoBehaviour
         marker5.gameObject.SetActive(false);
         marker6.gameObject.SetActive(false);
         marker7.gameObject.SetActive(false);
-        MleeButton_1.gameObject.SetActive(false);
-        MleeButton_2.gameObject.SetActive(false);
-        MleeButton_3.gameObject.SetActive(false);
-        MleeButton_4.gameObject.SetActive(false);
+        P_Select1.gameObject.SetActive(false);
+        E_Select1.gameObject.SetActive(false);
+        P_Select2.gameObject.SetActive(false);
+        E_Select2.gameObject.SetActive(false);
 
         Enemy_WithMarkers = new();
 

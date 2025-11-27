@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using TMPro;
 
 
-public enum BodyPartSlot { Head, Body, Arms, Legs }
+public enum BodyPartSlot { Head, Body, Arms, Legs, Upper, Lower, Arms2 }
 // └─ 파츠가 장착될 슬롯 구분용 열거형
 
 
