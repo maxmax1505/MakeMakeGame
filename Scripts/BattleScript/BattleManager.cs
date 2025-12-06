@@ -140,6 +140,11 @@ public class BattleManager : MonoBehaviour
     public GameObject E_DF_Body;
     public GameObject E_EV_Leg;
     public GameObject E_DF_Leg;
+
+    public TextMeshProUGUI P_Name;
+    public TextMeshProUGUI E_Name;
+    public Slider P_MleeHP_Bar;
+    public Slider E_MleeHP_Bar;
     #endregion
 
     #region 스타트, 업데이트, 배틀루프
@@ -713,6 +718,11 @@ public class BattleManager : MonoBehaviour
             case GunType.Laser:
                 FireLaser(origin, target, hit);
                 break;
+
+            case GunType.Sniper:
+                FireSniperLaser(origin, target, true);
+                FireSniper(origin, target, hit);
+                break;
         }
     }
     public void FireBullet(RectTransform origin, RectTransform target, bool hit)
@@ -726,6 +736,27 @@ public class BattleManager : MonoBehaviour
         int index = uiCanvasRoot.GetSiblingIndex();
         bulletRect.SetSiblingIndex(index + 2);
 
+
+        BulletManage bulletManage = bullet.GetComponent<BulletManage>();
+        if (bulletManage != null)
+        {
+            bulletManage.Initialize(target.anchoredPosition, hit);
+        }
+    }
+    public void FireSniper(RectTransform origin, RectTransform target, bool hit)
+    {
+        if (bulletPrefab == null || origin == null || target == null) return;
+
+        GameObject bullet = Instantiate(bulletPrefab, uiCanvasRoot);
+        RectTransform bulletRect = bullet.GetComponent<RectTransform>();
+        var bulletcolor = bullet.GetComponent<Image>();
+        bulletRect.anchoredPosition = origin.anchoredPosition;
+
+        int index = uiCanvasRoot.GetSiblingIndex();
+        bulletRect.SetSiblingIndex(index + 2);
+
+        if (bulletcolor != null)
+            bulletcolor.color = Color.red; // 주황색 적용
 
         BulletManage bulletManage = bullet.GetComponent<BulletManage>();
         if (bulletManage != null)
@@ -754,7 +785,10 @@ public class BattleManager : MonoBehaviour
 
             var bullet = Instantiate(bulletPrefab, uiCanvasRoot);
             var rect = bullet.GetComponent<RectTransform>();
+            var bulletcolor = bullet.GetComponent<Image>(); 
             rect.anchoredPosition = start;
+            if (bulletcolor != null)
+                bulletcolor.color = Color.orange; // 주황색 적용
 
             BulletManage bulletManage = bullet.GetComponent<BulletManage>();
             if (bulletManage != null)
@@ -774,6 +808,23 @@ public class BattleManager : MonoBehaviour
             Vector2 start = origin.anchoredPosition;
             Vector2 end = target.anchoredPosition;
             laserScript.Initialize(start, end, hit);
+        }
+    }
+    public void FireSniperLaser(RectTransform origin, RectTransform target, bool hit)
+    {
+        GameObject laser = Instantiate(laserPrefab, uiCanvasRoot);
+        var laserRect = laser.GetComponent<RectTransform>();
+        var laserScript = laser.GetComponent<LaserBullet>();
+        var bulletcolor = laser.GetComponent<Image>();
+        
+
+        if (laserRect != null && laserScript != null)
+        {
+            Vector2 start = origin.anchoredPosition;
+            Vector2 end = target.anchoredPosition;
+            laserScript.Initialize(start, end, hit,150, 0.1f, true);
+            if (bulletcolor != null)
+                bulletcolor.color = Color.orange;
         }
     }
 
@@ -1156,7 +1207,7 @@ public class BattleManager : MonoBehaviour
         List<IMlee> EnemySelectedMleeList = new();
 
         SetUpMleePartList();
-        UpdateEvAndDF();
+        UpdateEvAndDF(true);
 
         marker0.gameObject.SetActive(false);
         marker1.gameObject.SetActive(false);
@@ -1189,6 +1240,11 @@ public class BattleManager : MonoBehaviour
             { BodyPartSlot.Body, E_Body},
             { BodyPartSlot.Legs, E_Leg}
         };
+
+        E_Name.text = ShouldBeEnemy.Name;
+        P_Name.text = ShouldBePlayer.Name;
+
+        Update_MleeHpSlider(ShouldBePlayer, ShouldBeEnemy);
 
         TalkManager.Instance.ShowTemp($"{ShouldBeEnemy.Name}은(는) 당신 바로 앞에 있다! 무엇을 하지?");
 
@@ -1238,7 +1294,7 @@ public class BattleManager : MonoBehaviour
                 SelectMleeChild_PartText(P_Select1.gameObject, P_TargetMleePart);
 
                 ApplyEVorDF(true, PlayerSelectedMleeList[i].Type, P_TargetMleePart);
-                UpdateEvAndDF();
+                UpdateEvAndDF(false);
 
                 P_TargetMleePart_One = P_TargetMleePart;
             }
@@ -1250,7 +1306,7 @@ public class BattleManager : MonoBehaviour
                 SelectMleeChild_PartText(P_Select2.gameObject, P_TargetMleePart);
 
                 ApplyEVorDF(true, PlayerSelectedMleeList[i].Type, P_TargetMleePart);
-                UpdateEvAndDF();
+                UpdateEvAndDF(false);
 
                 P_TargetMleePart_Two = P_TargetMleePart;
 
@@ -1273,7 +1329,7 @@ public class BattleManager : MonoBehaviour
                 SelectMleeChild_PartText(E_Select1.gameObject, E_TargetMleePart);
 
                 ApplyEVorDF(false, EnemySelectedMleeList[i].Type, E_TargetMleePart);
-                UpdateEvAndDF();
+                UpdateEvAndDF(false);
 
                 E_TargetMleePart_One = E_TargetMleePart;
             }
@@ -1285,11 +1341,22 @@ public class BattleManager : MonoBehaviour
                 SelectMleeChild_PartText(E_Select2.gameObject, E_TargetMleePart);
 
                 ApplyEVorDF(false, EnemySelectedMleeList[i].Type, E_TargetMleePart);
-                UpdateEvAndDF();
+                UpdateEvAndDF(false);
 
                 E_TargetMleePart_Two = E_TargetMleePart;
             }
             yield return ShowThenWait($"당신은 {ShouldBeEnemy.Name}의 움직임을 읽었다! {ShouldBeEnemy.Name}는 {EnemySelectedMleeList[i].Name}을(를) 했다");
+        }
+
+        List<BodyPartSlot> E_Current_tpart = new() { E_TargetMleePart_One, E_TargetMleePart_Two };
+        List<BodyPartSlot> P_Current_tpart = new() { P_TargetMleePart_One, P_TargetMleePart_Two };
+
+        float EvadeDiff(ICharacter attaker, ICharacter Defence, float evadebuff)
+        {
+            // 2배면 +20/-20, 같으면 0
+            float ratio = Mathf.Log(attaker.Evade / Mathf.Max(Defence.Evade * evadebuff, 0.0001f), 2f); // p가 e의 몇 배인지 (2배면 1, 절반이면 -1)
+            ratio = Mathf.Clamp(ratio, -1f, 1f);                    // -1~1 사이로 제한
+            return ratio * 20f;                                     // -20 ~ +20으로 스케일
         }
 
         // 플레이어, 적 각각 두 번씩 주고받기
@@ -1297,10 +1364,25 @@ public class BattleManager : MonoBehaviour
         {
             float RandY = UnityEngine.Random.value * 100;
 
+            float EnemyEvadePer;
+
+            if(PlayerSelectedMleeList[i].Type == MleeATKType.PowerATK || PlayerSelectedMleeList[i].Type == MleeATKType.SpeedATK)
+            {
+                EnemyEvadePer = E_EV_List[P_Current_tpart[i]].Buff;
+            }
+            else
+            {
+                EnemyEvadePer = 1f;
+            }
+
+            float PlusMinusEvade = EvadeDiff(ShouldBePlayer, ShouldBeEnemy, EnemyEvadePer);
+
             float PlayerBaseHitPer = PlayerSelectedMleeList[i].HitChance(ShouldBePlayer);
-            float EnemyModHitPer = EnemySelectedMleeList[0].MleeModifiers[PlayerSelectedMleeList[0].Type].HitChancePer *
-                                    EnemySelectedMleeList[1].MleeModifiers[PlayerSelectedMleeList[1].Type].HitChancePer;
-            int totalPlayerHitPer = Mathf.RoundToInt(PlayerBaseHitPer * EnemyModHitPer);
+            float EnemyModHitPer;
+
+            EnemyModHitPer = PlayerSelectedMleeList[i].MleeModifiers[EnemySelectedMleeList[i].Type].HitChancePer;
+
+            int totalPlayerHitPer = Mathf.RoundToInt((PlayerBaseHitPer + PlusMinusEvade) * EnemyModHitPer );
 
             if (RandY < totalPlayerHitPer)
             {
@@ -1308,12 +1390,13 @@ public class BattleManager : MonoBehaviour
                 Debug.Log(totalPlayerHitPer);
 
                 float playerBase = PlayerSelectedMleeList[i].Damage(ShouldBePlayer);
-                float enemyMod = EnemySelectedMleeList[0].MleeModifiers[PlayerSelectedMleeList[0].Type].DamagePer *
-                                 EnemySelectedMleeList[1].MleeModifiers[PlayerSelectedMleeList[1].Type].DamagePer;
+                float enemyMod;
+                enemyMod = PlayerSelectedMleeList[i].MleeModifiers[EnemySelectedMleeList[i].Type].DamagePer;
                 int totalPlayer = Mathf.RoundToInt(playerBase * enemyMod);
 
                 ShouldBeEnemy.CurrentHp -= totalPlayer;
                 Enemy_WithMarkers[ShouldBeEnemy_int].slider.value = (float)ShouldBeEnemy.CurrentHp / ShouldBeEnemy.HP;
+                Update_MleeHpSlider(ShouldBePlayer, ShouldBeEnemy);
 
                 if (PlayerSelectedMleeList[i].Type == MleeATKType.PowerATK || PlayerSelectedMleeList[i].Type == MleeATKType.SpeedATK)
                 {
@@ -1331,15 +1414,35 @@ public class BattleManager : MonoBehaviour
             }
             else
             {
-                yield return ShowThenWait($"{ShouldBePlayer.Name}의 {PlayerSelectedMleeList[i].Name}은 빗나갔다! 확률 : { totalPlayerHitPer }");
+                if (PlayerSelectedMleeList[i].Type == MleeATKType.Defence || PlayerSelectedMleeList[i].Type == MleeATKType.Dodge)
+                {
+                    yield return ShowThenWait($"{ShouldBePlayer.Name}은(는) {PlayerSelectedMleeList[i].Name} 중이다!");
+                }
+                else
+                {
+                    yield return ShowThenWait($"{ShouldBePlayer.Name}의 {PlayerSelectedMleeList[i].Name}은(는) 빗나갔다! 확률 : { totalPlayerHitPer }");
+                }
             }
 
             float RandX = UnityEngine.Random.value * 100;
 
+            float PlayerEvadePer;
+
+            if (EnemySelectedMleeList[i].Type == MleeATKType.PowerATK || PlayerSelectedMleeList[i].Type == MleeATKType.SpeedATK)
+            {
+                PlayerEvadePer = P_EV_List[E_Current_tpart[i]].Buff;
+            }
+            else
+            {
+                PlayerEvadePer = 1f;
+            }
+
+            PlusMinusEvade = EvadeDiff(ShouldBeEnemy, ShouldBePlayer, PlayerEvadePer);
+
             float enemyBaseHitPer = EnemySelectedMleeList[i].HitChance(ShouldBeEnemy);
-            float playerModHitPer = PlayerSelectedMleeList[0].MleeModifiers[EnemySelectedMleeList[0].Type].HitChancePer *
-                                    PlayerSelectedMleeList[1].MleeModifiers[EnemySelectedMleeList[1].Type].HitChancePer;
-            int totalEnemyHitPer = Mathf.RoundToInt(enemyBaseHitPer * playerModHitPer);
+            float playerModHitPer;
+            playerModHitPer = EnemySelectedMleeList[i].MleeModifiers[PlayerSelectedMleeList[i].Type].HitChancePer;
+            int totalEnemyHitPer = Mathf.RoundToInt((enemyBaseHitPer + PlusMinusEvade) * playerModHitPer);
 
             if (RandX < totalEnemyHitPer)
             {
@@ -1347,12 +1450,12 @@ public class BattleManager : MonoBehaviour
                 Debug.Log(totalEnemyHitPer);
 
                 float enemyBase = EnemySelectedMleeList[i].Damage(ShouldBeEnemy);
-                float playerMod = PlayerSelectedMleeList[0].MleeModifiers[EnemySelectedMleeList[0].Type].DamagePer *
-                                  PlayerSelectedMleeList[1].MleeModifiers[EnemySelectedMleeList[1].Type].DamagePer;
+                float playerMod = EnemySelectedMleeList[i].MleeModifiers[PlayerSelectedMleeList[i].Type].DamagePer;
                 int totalEnemy = Mathf.RoundToInt(enemyBase * playerMod);
 
                 ShouldBePlayer.CurrentHp -= totalEnemy;
                 PlayerSlider.value = (float)ShouldBePlayer.CurrentHp / ShouldBePlayer.HP;
+                Update_MleeHpSlider(ShouldBePlayer, ShouldBeEnemy);
 
                 if (EnemySelectedMleeList[i].Type == MleeATKType.PowerATK || EnemySelectedMleeList[i].Type == MleeATKType.SpeedATK)
                 {
@@ -1366,11 +1469,18 @@ public class BattleManager : MonoBehaviour
                     }
                 }
 
-                yield return ShowThenWait($"{ShouldBeEnemy.Name}의 {EnemySelectedMleeList[i].Name}! {ShouldBePlayer.Name}은 {totalEnemy} 피해를 입었다! 확률 : { totalEnemyHitPer } 원 데미지:{ enemyBase } 기술 연계 : {playerMod}");
+                yield return ShowThenWait($"{ShouldBeEnemy.Name}의 {EnemySelectedMleeList[i].Name}! {ShouldBePlayer.Name}은(는) {totalEnemy} 피해를 입었다! 확률 : { totalEnemyHitPer } 원 데미지:{ enemyBase } 기술 연계 : {playerMod}");
             }
             else
             {
-                yield return ShowThenWait($"{ShouldBeEnemy.Name}의 {EnemySelectedMleeList[i].Name}은 빗나갔다! 확률 : { totalEnemyHitPer }");
+                if (EnemySelectedMleeList[i].Type == MleeATKType.Defence || EnemySelectedMleeList[i].Type == MleeATKType.Dodge)
+                {
+                    yield return ShowThenWait($"{ShouldBeEnemy.Name}은(는) {EnemySelectedMleeList[i].Name} 중이다!");
+                }
+                else
+                {
+                    yield return ShowThenWait($"{ShouldBeEnemy.Name}의 {EnemySelectedMleeList[i].Name}은(는) 빗나갔다! 확률 : { totalEnemyHitPer }");
+                }
             }
 
             
@@ -1613,31 +1723,73 @@ public class BattleManager : MonoBehaviour
             { BodyPartSlot.Body, (1, E_DF_Body) }
         };
     }
-    void UpdateEvAndDF()
+    void UpdateEvAndDF(bool isUpdate)
     {
-        foreach (var ttext in P_EV_List)
+        if(isUpdate == true)
         {
-            TextMeshProUGUI P_EVtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
-            float v = ttext.Value.Buff;
-            P_EVtext.text = $"회피 x{v}";
+            foreach (var ttext in P_EV_List)
+            {
+                GameObject textobject = ttext.Value.SlotObject.gameObject;
+                textobject.SetActive(false);
+            }
+            foreach (var ttext in P_DF_List)
+            {
+                GameObject textobject = ttext.Value.SlotObject.gameObject;
+                textobject.SetActive(false);
+            }
+            foreach (var ttext in E_EV_List)
+            {
+                GameObject textobject = ttext.Value.SlotObject.gameObject;
+                textobject.SetActive(false);
+            }
+            foreach (var ttext in E_DF_List)
+            {
+                GameObject textobject = ttext.Value.SlotObject.gameObject;
+                textobject.SetActive(false);
+            }
         }
-        foreach (var ttext in P_DF_List)
+        if (isUpdate == false)
         {
-            TextMeshProUGUI P_DFtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
-            float v = ttext.Value.Buff;
-            P_DFtext.text = $"방어 x{v}";
-        }
-        foreach (var ttext in E_EV_List)
-        {
-            TextMeshProUGUI E_EVtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
-            float v = ttext.Value.Buff;
-            E_EVtext.text = $"회피 x{v}";
-        }
-        foreach (var ttext in E_DF_List)
-        {
-            TextMeshProUGUI E_DFtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
-            float v = ttext.Value.Buff;
-            E_DFtext.text = $"방어 x{v}";
+            foreach (var ttext in P_EV_List)
+            {
+                float v = ttext.Value.Buff;
+                if (v != 1f)
+                {
+                    ttext.Value.SlotObject.SetActive(true);
+                    TextMeshProUGUI P_EVtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
+                    P_EVtext.text = $"회피 x{v}";
+                }
+            }
+            foreach (var ttext in P_DF_List)
+            {
+                float v = ttext.Value.Buff;
+                if (v != 1f)
+                {
+                    ttext.Value.SlotObject.SetActive(true);
+                    TextMeshProUGUI P_DFtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
+                    P_DFtext.text = $"방어 x{v}";
+                }
+            }
+            foreach (var ttext in E_EV_List)
+            {
+                float v = ttext.Value.Buff;
+                if (v != 1f)
+                {
+                    ttext.Value.SlotObject.SetActive(true);
+                    TextMeshProUGUI E_EVtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
+                    E_EVtext.text = $"회피 x{v}";
+                }
+            }
+            foreach (var ttext in E_DF_List)
+            {
+                float v = ttext.Value.Buff;
+                if (v != 1f)
+                {
+                    ttext.Value.SlotObject.SetActive(true);
+                    TextMeshProUGUI E_DFtext = ttext.Value.SlotObject.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
+                    E_DFtext.text = $"방어 x{v}";
+                }
+            }
         }
     }
     void ApplyEVorDF(bool isPlayer, MleeATKType type, BodyPartSlot targetpart)
@@ -1848,8 +2000,8 @@ public class BattleManager : MonoBehaviour
         }
         else if (E_Mleetype == MleeATKType.SpeedATK && (P_MleeType == MleeATKType.PowerATK || P_MleeType == MleeATKType.SpeedATK))
         {
-            List<BodyPartSlot> UpperRandom = new() { BodyPartSlot.Upper, BodyPartSlot.Lower };
-            int ranX = UnityEngine.Random.Range(0, 2);
+            List<BodyPartSlot> UpperRandom = new() { BodyPartSlot.Head, BodyPartSlot.Body, BodyPartSlot.Legs, BodyPartSlot.Arms };
+            int ranX = UnityEngine.Random.Range(0, 4);
             E_TargetMleePart = UpperRandom[ranX];
         }
         else if (E_Mleetype == MleeATKType.PowerATK && (P_MleeType == MleeATKType.PowerATK || P_MleeType == MleeATKType.SpeedATK))
@@ -1885,7 +2037,11 @@ public class BattleManager : MonoBehaviour
         // 부동오차 방지용 폴백
         return ActiveMlees[ActiveMlees.Count - 1];
     }
-
+    public void Update_MleeHpSlider(ICharacter ShouldBePlayer, ICharacter ShouldBeEnemy)
+    {
+        P_MleeHP_Bar.value = Mathf.InverseLerp(0, ShouldBePlayer.HP, (float)ShouldBePlayer.CurrentHp);
+        E_MleeHP_Bar.value = Mathf.InverseLerp(0, ShouldBeEnemy.HP, (float)ShouldBeEnemy.CurrentHp);
+    }
     public string BodyPartToString(BodyPartSlot part)
     {
         switch (part)

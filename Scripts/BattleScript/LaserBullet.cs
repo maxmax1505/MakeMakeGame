@@ -6,14 +6,15 @@ using TMPro;
 
 public class LaserBullet : MonoBehaviour
 {
-    [SerializeField] float lifeTime = 0.05f;
+    float lifeTime = 0.05f;
     RectTransform rect;
 
     void Awake() => rect = GetComponent<RectTransform>();
 
-    public void Initialize(Vector2 startAnchoredPos, Vector2 endAnchoredPos, bool hit, float overshoot = 150f)
+    public void Initialize(Vector2 startAnchoredPos, Vector2 endAnchoredPos, bool hit, float overshoot = 150f, float time = 0.05f, bool sniper = false)
     {
         Vector2 finalEnd = endAnchoredPos;
+        lifeTime = time;
 
         if (!hit)
         {
@@ -30,7 +31,15 @@ public class LaserBullet : MonoBehaviour
         rect.rotation = Quaternion.Euler(0f, 0f, angle);
 
         float length = Vector2.Distance(startAnchoredPos, finalEnd);
-        rect.sizeDelta = new Vector2(length, rect.sizeDelta.y);
+
+        if (sniper == true)
+        {
+            rect.sizeDelta = new Vector2(length, 3f);
+        }
+        else
+        {
+            rect.sizeDelta = new Vector2(length, rect.sizeDelta.y);
+        }
 
         StartCoroutine(AutoDestroy());
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,7 +32,8 @@ public class DungeonManager : MonoBehaviour
     {
         float timer = 0f;
         float currentTimer = 0f;
-        float DungeonEncounter = Random.Range(3f, 8f);
+        float DungeonEncounter = UnityEngine.Random.Range(3f, 8f);
+        PlayerIcon.position = StartPoint.position;
 
         while (!reachedDestination)
         {
@@ -45,7 +47,7 @@ public class DungeonManager : MonoBehaviour
 
                 yield return StartCoroutine(StartBattle());
 
-                DungeonEncounter = currentTimer + Random.Range(3f, 8f);
+                DungeonEncounter = currentTimer + UnityEngine.Random.Range(3f, 8f);
             }
 
             if ((timer >= travelTime))
@@ -66,7 +68,7 @@ public class DungeonManager : MonoBehaviour
         float restDuration = 5f;                       // 휴식 시간
         float targetHp = Mathf.Min(DungeonPlayer.CurrentHp + DungeonPlayer.HP / 2f, DungeonPlayer.HP);
         float healSpeed = DungeonPlayer.HP / 10f;
-        float encounterTime = Random.Range(3f, 5f);    // 휴식 중 전투 시점
+        float encounterTime = UnityEngine.Random.Range(3f, 5f);    // 휴식 중 전투 시점
         float IsIncountered = UnityEngine.Random.value;
         float chp = DungeonPlayer.CurrentHp;
 
@@ -98,7 +100,29 @@ public class DungeonManager : MonoBehaviour
     {
         int monLev = 2;
         float riSK = universManager.ComputeRisk(monLev);
-        battleManager.enemies = new List<ICharacter> { new Monster1(), new Monster1() };
+        battleManager.enemies = new();
+
+        List<Func<ICharacter>> BattleEnemyFactories = new()
+        {
+            () => new Monster1(),
+            () => new Monster2()
+        };
+
+        int RandomEnemyCount()
+        {
+            int ranx = UnityEngine.Random.Range(1, 5);
+            return ranx;
+        }
+
+        int rany = RandomEnemyCount();
+
+        for(int i = 0; i < rany; i++)
+        {
+            int ran = UnityEngine.Random.Range(0, 2);
+            battleManager.enemies.Add(BattleEnemyFactories[ran].Invoke());
+        }
+
+        //battleManager.enemies = new List<ICharacter> { BattleEnemyFactories[0].Invoke(), BattleEnemyFactories[1].Invoke() };
         battleManager.IfNameSame();
         sceneChanger.DungeonToBattle();
         yield return new WaitUntil(() => NotInBattle);

@@ -10,10 +10,12 @@ public class UniversManager : MonoBehaviour
     //public int CurrentLevel = 1;
 
     [SerializeField] float minSpacing = 100;
-    [SerializeField] float targetCount = 30;
+    
     [SerializeField] public int minLevel = 1;
     [SerializeField] public int maxLevel = 100;
     [SerializeField] public float riskCurve = 1.2f;   // 곡선 조절
+
+
     public float ComputeRisk(int level)
     {
         float t = Mathf.Clamp01((level - minLevel) / (float)(maxLevel - minLevel));
@@ -23,18 +25,33 @@ public class UniversManager : MonoBehaviour
 
     List<Vector2> planetsPositionList = new();
     public List<IPlanet> Planets = new();
+    Dictionary<int, GameObject> planetButtons = new();
 
     [SerializeField] GameObject PlanetPrefab;
     [SerializeField] RectTransform uiParent;
     [SerializeField] TextMeshProUGUI planetNameText;
 
+    [SerializeField] RectTransform miniMapRoot;
+    [SerializeField] RectTransform MiniMap; // B
+    [SerializeField] RectTransform Map;
+    [SerializeField] GameObject InfoBackGround;
+    [SerializeField] TextMeshProUGUI PlanetInformationText;
+
+    [SerializeField] TextMeshProUGUI GoMapOrMiniMapButton;
+    [SerializeField] TextMeshProUGUI WitchTargetPlanetText;
+
     public int CurrentPlanet = 0;
+    public int TargetPlanet = 0;
+    float targetCount = 30;
+    bool IsInMap = true;
 
     public void Start()
     {
         LetThereBeLight();
         BuildPlanetData();
-        //RenderPlanetButtons();
+        RenderPlanetButtons();
+        MatchScale(miniMapRoot, Map);
+        ButtonColor();
     }
     /* 푸아송 방법
     public void LetThereBeLight()
@@ -77,13 +94,32 @@ public class UniversManager : MonoBehaviour
         }
     }
     */
+    public void GoMapOrMiniMap()
+    {
+        if (IsInMap == true)
+        {
+            MatchScale(miniMapRoot, MiniMap);
+            GoMapOrMiniMapButton.text = "행성 지도";
+            InfoBackGround.SetActive(true);
+            int dis = DistanceAsInt(Planets[CurrentPlanet].poSiTion, Planets[TargetPlanet].poSiTion);
+            PlanetInformationText.text = $"거리: {dis}";
+            IsInMap = false;
+        }
+        else
+        {
+            MatchScale(miniMapRoot, Map);
+            GoMapOrMiniMapButton.text = "행성 정보";
+            InfoBackGround.SetActive(false);
+            IsInMap = true;
+        }
+    }
 
     public void LetThereBeLight()
     {
-        float minX = -1280f;
-        float maxX = 1280f;
-        float minY = -720f;
-        float maxY = 720f;
+        float minX = -1180f;
+        float maxX = 1180f;
+        float minY = -620f;
+        float maxY = 620f;
 
         int attempts = 0;
         int maxAttempts = 2000;
@@ -121,6 +157,71 @@ public class UniversManager : MonoBehaviour
 
     void RenderPlanetButtons()
     {
+        // 새 부모(캔버스 밑의 빈 RectTransform)를 받아온다고 가정
+        RectTransform targetParent = miniMapRoot; // 빈 오브젝트
+
+        foreach (Transform child in targetParent)
+            Destroy(child.gameObject);
+
+        for (int i = 0; i < Planets.Count; i++)
+        {
+            var planetUI = Instantiate(PlanetPrefab);
+            planetUI.transform.SetParent(targetParent, worldPositionStays: false); // 부모만 변경
+            var rt = planetUI.GetComponent<RectTransform>();
+            rt.anchoredPosition = Planets[i].poSiTion; // Canvas 기준 좌표 그대로 사용
+
+            int index = i;
+            var button = planetUI.GetComponent<Button>();
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() =>
+                Debug.Log($"Planet index: {index}, 행성명: {Planets[index].Name}")
+            );
+            button.onClick.AddListener(() => TargetPlanet = index);
+            button.onClick.AddListener(() => WitchTargetPlanetText.text = $"목표 행성: {Planets[index].Name}");
+            button.onClick.AddListener(() => ButtonColor());
+            planetButtons[index] = planetUI; // 인덱스-오브젝트 저장
+        }
+    }
+
+    public static void MatchScale(RectTransform source, RectTransform target)
+    {
+        if (source == null || target == null) return;
+        Vector2 aSize = source.rect.size;
+        Vector2 bSize = target.rect.size;
+        if (aSize.x <= 0 || aSize.y <= 0) return;
+
+        float sx = bSize.x / aSize.x;
+        float sy = bSize.y / aSize.y;
+        source.localScale = new Vector3(sx, sy, 1f);
+
+        source.anchoredPosition = target.anchoredPosition;
+    }
+    public void ButtonColor()
+    {
+        foreach(GameObject buttonObject in planetButtons.Values)
+        {
+            buttonObject.GetComponent<Image>().color = Color.white;
+        }
+
+        if (CurrentPlanet == TargetPlanet)
+        {
+            planetButtons[CurrentPlanet].gameObject.GetComponent<Image>().color = Color.green;
+            WitchTargetPlanetText.text = $"목표 행성: 현재 행성";
+        }
+        else
+        {
+            planetButtons[CurrentPlanet].gameObject.GetComponent<Image>().color = Color.green;
+            planetButtons[TargetPlanet].gameObject.GetComponent<Image>().color = Color.red;
+        }
+    }
+    public int DistanceAsInt(Vector2 currentPlanet, Vector2 targetPlanet)
+    {
+        float dist = Vector2.Distance(currentPlanet, targetPlanet);
+        return Mathf.RoundToInt(dist);
+    }
+    /*
+    void RenderPlanetButtons()
+    {
         foreach (Transform child in uiParent)
             Destroy(child.gameObject);
 
@@ -138,7 +239,7 @@ public class UniversManager : MonoBehaviour
             button.onClick.AddListener(() => CurrentPlanet = index);
         }
     }
-
+    */
     public bool IsInsideMap(Vector2 point)
     {
         // 맵을 원형이라고 가정한 경우

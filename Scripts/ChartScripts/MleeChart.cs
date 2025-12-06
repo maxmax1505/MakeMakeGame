@@ -55,17 +55,17 @@ public class MleeChart : MonoBehaviour
         }
         public float Damage(ICharacter attacker) //플레이어 스탯을 이용한 이 공격의 데미지 산출 공식(미구현)
         {
-            return 10;
+            return attacker.MleeDamage;
         }
 
         public Color color { get; set; } = Color.red;
 
         public Dictionary<MleeATKType, MleePlusMinus> MleeModifiers { get; } = new()
         {
-            { MleeATKType.SpeedATK, new MleePlusMinus(1.5f, 1.5f, 1f) },
-            { MleeATKType.PowerATK, new MleePlusMinus(1f, 0.8f, 1f) },
-            { MleeATKType.Defence, new MleePlusMinus(2f, 0f, 1f) },
-            { MleeATKType.Dodge, new MleePlusMinus(1.5f, 0f, 1f) }
+            { MleeATKType.SpeedATK, new MleePlusMinus(0.5f, 1.5f, 1f) },
+            { MleeATKType.PowerATK, new MleePlusMinus(1f, 1f, 1f) },
+            { MleeATKType.Defence, new MleePlusMinus(1f, 2f, 1f) },
+            { MleeATKType.Dodge, new MleePlusMinus(0.5f, 1f, 1f) }
         };
     }
     public class SpeedATK : IMlee
@@ -75,11 +75,11 @@ public class MleeChart : MonoBehaviour
         public float ChanceWeight { get; set; } = 2f;
         public float HitChance(ICharacter attacker) //플레이어 스탯을 이용한 이 공격의 적중률 산출 공식(미구현)
         {
-            return 50;
+            return 70;
         }
         public float Damage(ICharacter attacker) //플레이어 스탯을 이용한 이 공격의 데미지 산출 공식(미구현)
         {
-            return 10;
+            return attacker.MleeDamage;
         }
 
         public Color color { get; set; } = Color.orange;
@@ -87,9 +87,9 @@ public class MleeChart : MonoBehaviour
         public Dictionary<MleeATKType, MleePlusMinus> MleeModifiers { get; } = new()
         {
             { MleeATKType.SpeedATK, new MleePlusMinus(1.0f, 1.0f, 1f) },
-            { MleeATKType.PowerATK, new MleePlusMinus(2f, 1.2f, 1f) },
-            { MleeATKType.Defence, new MleePlusMinus(0.4f, 0f, 1f) },
-            { MleeATKType.Dodge, new MleePlusMinus(0.2f, 0f, 1f) }
+            { MleeATKType.PowerATK, new MleePlusMinus(1.5f, 1.0f, 1f) },
+            { MleeATKType.Defence, new MleePlusMinus(2f, 0.5f, 1f) },
+            { MleeATKType.Dodge, new MleePlusMinus(1.5f, 2f, 1f) }
         };
     }
     public class Defence : IMlee
@@ -103,17 +103,17 @@ public class MleeChart : MonoBehaviour
         }
         public float Damage(ICharacter attacker) //플레이어 스탯을 이용한 이 공격의 데미지 산출 공식(미구현)
         {
-            return 10;
+            return attacker.MleeDamage;
         }
 
         public Color color { get; set; } = Color.blue;
 
         public Dictionary<MleeATKType, MleePlusMinus> MleeModifiers { get; } = new()
         {
-            { MleeATKType.SpeedATK, new MleePlusMinus(2f, 0.4f, 1f) },
-            { MleeATKType.PowerATK, new MleePlusMinus(1f, 0.6f, 1f) },
-            { MleeATKType.Defence, new MleePlusMinus(1f, 0f, 1f) },
-            { MleeATKType.Dodge, new MleePlusMinus(1f, 0f, 1f) }
+            { MleeATKType.SpeedATK, new MleePlusMinus(0f, 0f, 1f) },
+            { MleeATKType.PowerATK, new MleePlusMinus(0f, 0f, 1f) },
+            { MleeATKType.Defence, new MleePlusMinus(0f, 0f, 1f) },
+            { MleeATKType.Dodge, new MleePlusMinus(0f, 0f, 1f) }
         };
     }
     public class Dodge : IMlee
@@ -127,17 +127,17 @@ public class MleeChart : MonoBehaviour
         }
         public float Damage(ICharacter attacker) //플레이어 스탯을 이용한 이 공격의 데미지 산출 공식(미구현)
         {
-            return 10;
+            return attacker.MleeDamage;
         }
 
         public Color color { get; set; } = Color.green;
 
         public Dictionary<MleeATKType, MleePlusMinus> MleeModifiers { get; } = new()
         {
-            { MleeATKType.SpeedATK, new MleePlusMinus(0.5f, 1f, 1f) },
-            { MleeATKType.PowerATK, new MleePlusMinus(0.3f, 1f, 1f) },
-            { MleeATKType.Defence, new MleePlusMinus(1f, 0f, 1f) },
-            { MleeATKType.Dodge, new MleePlusMinus(0.4f, 0f, 1f) }
+            { MleeATKType.SpeedATK, new MleePlusMinus(0f, 0f, 1f) },
+            { MleeATKType.PowerATK, new MleePlusMinus(0f, 0f, 1f) },
+            { MleeATKType.Defence, new MleePlusMinus(0f, 0f, 1f) },
+            { MleeATKType.Dodge, new MleePlusMinus(0f, 0f, 1f) }
         };
     }
 }
